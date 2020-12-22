@@ -30,15 +30,14 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 
 public class NEClient {
 
-	private static final Field blockHitDelay = ObfuscationReflectionHelper.findField(PlayerControllerMP.class, "field_78781_i");
-	private static final Method renderAir = ObfuscationReflectionHelper.findMethod(GuiIngameForge.class, "renderAir", void.class, int.class, int.class);
+	private static final Field blockHitDelay = findField(PlayerControllerMP.class, "field_78781_i", "blockHitDelay");
+	private static final Method renderAir = findMethod(GuiIngameForge.class, new Class<?>[]{int.class, int.class}, "renderAir");
 	
 	public static final NEClient INSTANCE = new NEClient();
 	
@@ -48,6 +47,28 @@ public class NEClient {
 		MinecraftForge.EVENT_BUS.register(this);
 	}
 	
+	private static Field findField(Class<?> clazz, String... names) {
+		for (String name : names) {
+			try {
+				Field f = clazz.getDeclaredField(name);
+				f.setAccessible(true);
+				return f;
+			} catch (Throwable t) {}
+		}
+		throw new IllegalArgumentException("Cannot find field "+names[0]);
+	}
+	
+	private static Method findMethod(Class<?> clazz, Class<?>[] parameterTypes, String... names) {
+		for (String name : names) {
+			try {
+				Method m = clazz.getDeclaredMethod(name, parameterTypes);
+				m.setAccessible(true);
+				return m;
+			} catch (Throwable t) {}
+		}
+		throw new IllegalArgumentException("Cannot find method "+names[0]);
+	}
+
 	@SubscribeEvent
 	public void onDrawOverlay(RenderGameOverlayEvent.Post e) {
 		if (e.getType() == ElementType.BOSSHEALTH) {
