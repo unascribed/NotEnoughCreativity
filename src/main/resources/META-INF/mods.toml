@@ -1,0 +1,9 @@
+modLoader="javafml" #mandatory
+loaderVersion="[32,)"
+license="MIT"
+[[mods]]
+modId="notenoughcreativity"
+version="${file.jarVersion}"
+displayName="Not Enough Creativity"
+authors="Una Thompson (unascribed)"
+description="Something like NEI's forgotten Creative+, but for newer versions, with some bonuses."

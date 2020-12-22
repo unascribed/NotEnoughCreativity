@@ -1,15 +1,15 @@
 package com.unascribed.notenoughcreativity.network;
 
-import com.elytradev.concrete.network.Message;
-import com.elytradev.concrete.network.NetworkContext;
-import com.elytradev.concrete.network.annotation.field.MarshalledAs;
-import com.elytradev.concrete.network.annotation.type.ReceivedOn;
 import com.unascribed.notenoughcreativity.NotEnoughCreativity;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Message;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.NetworkContext;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Side;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.field.MarshalledAs;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.type.ReceivedOn;
 import com.unascribed.notenoughcreativity.ContainerCreativePlus;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
 
 @ReceivedOn(Side.SERVER)
 public class MessageDeleteSlot extends Message {
@@ -27,9 +27,9 @@ public class MessageDeleteSlot extends Message {
 	}
 	
 	@Override
-	protected void handle(EntityPlayer player) {
-		if (player.inventoryContainer instanceof ContainerCreativePlus) {
-			player.inventoryContainer.getSlot(slot).putStack(ItemStack.EMPTY);
+	protected void handle(PlayerEntity player) {
+		if (player.container instanceof ContainerCreativePlus) {
+			player.container.getSlot(slot).putStack(ItemStack.EMPTY);
 		}
 	}
 	

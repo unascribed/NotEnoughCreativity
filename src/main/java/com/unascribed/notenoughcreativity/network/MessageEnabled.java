@@ -1,17 +1,18 @@
 package com.unascribed.notenoughcreativity.network;
 
-import com.elytradev.concrete.network.Message;
-import com.elytradev.concrete.network.NetworkContext;
-import com.elytradev.concrete.network.annotation.type.ReceivedOn;
 import com.unascribed.notenoughcreativity.ContainerCreativePlus;
 import com.unascribed.notenoughcreativity.NotEnoughCreativity;
 import com.unascribed.notenoughcreativity.client.GuiCreativePlus;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Message;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.NetworkContext;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Side;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.type.ReceivedOn;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiContainerCreative;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.gui.screen.inventory.CreativeScreen;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 @ReceivedOn(Side.CLIENT)
 public class MessageEnabled extends Message {
@@ -28,17 +29,17 @@ public class MessageEnabled extends Message {
 	}
 	
 	@Override
-	@SideOnly(Side.CLIENT)
-	protected void handle(EntityPlayer player) {
-		player.getEntityData().setBoolean("NotEnoughCreativity", enabled);
+	@OnlyIn(Dist.CLIENT)
+	protected void handle(PlayerEntity player) {
+		player.getPersistentData().putBoolean("NotEnoughCreativity", enabled);
 		NotEnoughCreativity.updateInventory(player);
 		if (enabled) {
-			if (Minecraft.getMinecraft().currentScreen instanceof GuiContainerCreative) {
-				Minecraft.getMinecraft().displayGuiScreen(new GuiCreativePlus(new ContainerCreativePlus(player)));
+			if (Minecraft.getInstance().currentScreen instanceof CreativeScreen) {
+				Minecraft.getInstance().displayGuiScreen(new GuiCreativePlus(new ContainerCreativePlus(player)));
 			}
 		} else {
-			if (Minecraft.getMinecraft().currentScreen instanceof GuiCreativePlus) {
-				Minecraft.getMinecraft().displayGuiScreen(new GuiContainerCreative(player));
+			if (Minecraft.getInstance().currentScreen instanceof GuiCreativePlus) {
+				Minecraft.getInstance().displayGuiScreen(new CreativeScreen(player));
 			}
 		}
 	}

@@ -3,79 +3,110 @@ package com.unascribed.notenoughcreativity;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.unascribed.notenoughcreativity.client.GuiCreativePlus;
 import com.unascribed.notenoughcreativity.network.MessageSetEnabled;
 import com.unascribed.notenoughcreativity.network.MessagePickBlock;
 import com.unascribed.notenoughcreativity.network.MessagePickEntity;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.inventory.GuiContainerCreative;
-import net.minecraft.client.multiplayer.PlayerControllerMP;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.client.gui.AbstractGui;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.inventory.CreativeScreen;
+import net.minecraft.client.multiplayer.PlayerController;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.RayTraceResult.Type;
-import net.minecraftforge.client.GuiIngameForge;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.client.event.InputEvent.ClickInputEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
+import net.minecraftforge.client.gui.ForgeIngameGui;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
+import net.minecraftforge.event.TickEvent.ClientTickEvent;
+import net.minecraftforge.event.TickEvent.Phase;
 
 public class NEClient {
 
-	private static final Field blockHitDelay = ObfuscationReflectionHelper.findField(PlayerControllerMP.class, "field_78781_i");
-	private static final Method renderAir = ObfuscationReflectionHelper.findMethod(GuiIngameForge.class, "renderAir", void.class, int.class, int.class);
+	private static final Field blockHitDelay = findField(PlayerController.class, "field_78781_i", "blockHitDelay");
+	private static final Method renderAir = findMethod(ForgeIngameGui.class, new Class<?>[]{int.class, int.class, MatrixStack.class}, "renderAir");
 	
 	public static final NEClient INSTANCE = new NEClient();
 	
 	private static final ResourceLocation SWAP = new ResourceLocation("notenoughcreativity", "textures/gui/swap.png");
 	
-	public void preInit() {
-		MinecraftForge.EVENT_BUS.register(this);
+	public static void setup() {
+		INSTANCE.setupInst();
 	}
 	
-	@SubscribeEvent
+	public void setupInst() {
+		MinecraftForge.EVENT_BUS.addListener(this::onClick);
+		MinecraftForge.EVENT_BUS.addListener(this::onClientTick);
+		MinecraftForge.EVENT_BUS.addListener(this::onDisplayGui);
+		MinecraftForge.EVENT_BUS.addListener(this::onDrawOverlay);
+		MinecraftForge.EVENT_BUS.addListener(this::onGuiClick);
+		MinecraftForge.EVENT_BUS.addListener(this::onPostRenderGui);
+		MinecraftForge.EVENT_BUS.addListener(this::onRenderTooltipPost);
+		MinecraftForge.EVENT_BUS.addListener(this::onRenderTooltipPre);
+	}
+	
+	private static Field findField(Class<?> clazz, String... names) {
+		for (String name : names) {
+			try {
+				Field f = clazz.getDeclaredField(name);
+				f.setAccessible(true);
+				return f;
+			} catch (Throwable t) {}
+		}
+		throw new IllegalArgumentException("Cannot find field "+names[0]);
+	}
+	
+	private static Method findMethod(Class<?> clazz, Class<?>[] parameterTypes, String... names) {
+		for (String name : names) {
+			try {
+				Method m = clazz.getDeclaredMethod(name, parameterTypes);
+				m.setAccessible(true);
+				return m;
+			} catch (Throwable t) {}
+		}
+		throw new IllegalArgumentException("Cannot find method "+names[0]);
+	}
+
 	public void onDrawOverlay(RenderGameOverlayEvent.Post e) {
 		if (e.getType() == ElementType.BOSSHEALTH) {
-			if (Ability.HEALTH.isEnabled(Minecraft.getMinecraft().player) && !Minecraft.getMinecraft().playerController.shouldDrawHUD()) {
+			if (Ability.HEALTH.isEnabled(Minecraft.getInstance().player) && !Minecraft.getInstance().playerController.shouldDrawHUD()) {
 				GlStateManager.pushMatrix();
-				GlStateManager.translate(0, 6, 0);
-				float origHealth = Minecraft.getMinecraft().player.getHealth();
-				if (Minecraft.getMinecraft().player.getHealth() < 0.2) {
-					Minecraft.getMinecraft().player.setHealth(0);
+				GlStateManager.translatef(0, 6, 0);
+				float origHealth = Minecraft.getInstance().player.getHealth();
+				if (Minecraft.getInstance().player.getHealth() < 0.2) {
+					Minecraft.getInstance().player.setHealth(0);
 				}
-				((GuiIngameForge)Minecraft.getMinecraft().ingameGUI).renderHealth(e.getResolution().getScaledWidth(), e.getResolution().getScaledHeight());
+				((ForgeIngameGui)Minecraft.getInstance().ingameGUI).renderHealth(e.getWindow().getScaledWidth(), e.getWindow().getScaledHeight(), e.getMatrixStack());
 				try {
-					renderAir.invoke(Minecraft.getMinecraft().ingameGUI, e.getResolution().getScaledWidth(), e.getResolution().getScaledHeight());
+					renderAir.invoke(Minecraft.getInstance().ingameGUI, e.getWindow().getScaledWidth(), e.getWindow().getScaledHeight(), e.getMatrixStack());
 				} catch (Throwable t) {
 					t.printStackTrace();
 				}
-				Minecraft.getMinecraft().player.setHealth(origHealth);
+				Minecraft.getInstance().player.setHealth(origHealth);
 				GlStateManager.popMatrix();
 			}
 		}
 	}
 	
-	@SubscribeEvent
 	public void onClientTick(ClientTickEvent e) {
 		if (e.phase == Phase.END) {
-			if (Ability.INSTABREAK.isEnabled(Minecraft.getMinecraft().player)) {
+			if (Ability.INSTABREAK.isEnabled(Minecraft.getInstance().player)) {
 				try {
-					blockHitDelay.set(Minecraft.getMinecraft().playerController, 0);
+					blockHitDelay.set(Minecraft.getInstance().playerController, 0);
 				} catch (Throwable t) {
 					t.printStackTrace();
 				}
@@ -83,73 +114,68 @@ public class NEClient {
 		}
 	}
 	
-	@SubscribeEvent
 	public void onRenderTooltipPre(RenderTooltipEvent.Color e) {
 		GlStateManager.pushMatrix();
-		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-		if (gui instanceof GuiContainerCreative) {
-			GuiContainerCreative gcc = (GuiContainerCreative)gui;
-			if (gcc.getSelectedTabIndex() == CreativeTabs.INVENTORY.getTabIndex()) {
+		Screen gui = Minecraft.getInstance().currentScreen;
+		if (gui instanceof CreativeScreen) {
+			CreativeScreen gcc = (CreativeScreen)gui;
+			if (gcc.getSelectedTabIndex() == ItemGroup.INVENTORY.getIndex()) {
 				GlStateManager.depthMask(true);
-				GlStateManager.enableDepth();
+				GlStateManager.enableDepthTest();
 				GlStateManager.depthFunc(GL11.GL_ALWAYS);
-				GlStateManager.translate(0, 0, 100);
+				GlStateManager.translatef(0, 0, 100);
 			}
 		}
 	}
 	
-	@SubscribeEvent
 	public void onRenderTooltipPost(RenderTooltipEvent.PostText e) {
 		GlStateManager.popMatrix();
 		GlStateManager.depthFunc(GL11.GL_LEQUAL);
 	}
 	
-	@SubscribeEvent
 	public void onDisplayGui(GuiOpenEvent e) {
-		if (e.getGui() instanceof GuiContainerCreative) {
-			EntityPlayerSP p = Minecraft.getMinecraft().player;
-			if (p.getEntityData().getBoolean("NotEnoughCreativity")) {
+		if (e.getGui() instanceof CreativeScreen) {
+			ClientPlayerEntity p = Minecraft.getInstance().player;
+			if (p.getPersistentData().getBoolean("NotEnoughCreativity")) {
 				e.setGui(new GuiCreativePlus(new ContainerCreativePlus(p)));
 			}
 		}
 	}
 	
-	@SubscribeEvent
 	public void onPostRenderGui(GuiScreenEvent.DrawScreenEvent.Post e) {
-		if (e.getGui() instanceof GuiContainerCreative) {
-			GuiContainerCreative gcc = (GuiContainerCreative)e.getGui();
-			if (gcc.getSelectedTabIndex() == CreativeTabs.INVENTORY.getTabIndex()) {
+		if (e.getGui() instanceof CreativeScreen) {
+			CreativeScreen gcc = (CreativeScreen)e.getGui();
+			if (gcc.getSelectedTabIndex() == ItemGroup.INVENTORY.getIndex()) {
 				GlStateManager.pushMatrix();
-				GlStateManager.enableDepth();
+				GlStateManager.enableDepthTest();
 				GlStateManager.depthFunc(GL11.GL_LEQUAL);
 				GlStateManager.disableLighting();
-				GlStateManager.color(1, 1, 1);
-				GlStateManager.translate(0, 0, 0);
-				Minecraft.getMinecraft().renderEngine.bindTexture(SWAP);
+				GlStateManager.color4f(1, 1, 1, 1);
+				GlStateManager.translatef(0, 0, 0);
+				Minecraft.getInstance().getTextureManager().bindTexture(SWAP);
 				int x = gcc.getGuiLeft()+172;
 				int y = gcc.getGuiTop()+89;
-				Gui.drawModalRectWithCustomSizedTexture(x, y, 0, 0, 18, 18, 18, 18);
+				AbstractGui.blit(e.getMatrixStack(), x, y, 0, 0, 18, 18, 18, 18);
 				int mX = e.getMouseX();
 				int mY = e.getMouseY();
 				if (mX >= x && mX < x+18 &&
 						mY >= y && mY < y+18) {
-					Gui.drawRect(x+1, y+1, x+17, y+17, 0x80FFFFFF);
-					gcc.drawHoveringText(I18n.format("notenoughcreativity.swap"), mX, mY);
+					AbstractGui.fill(e.getMatrixStack(), x+1, y+1, x+17, y+17, 0x80FFFFFF);
+					gcc.renderTooltip(e.getMatrixStack(), new TranslationTextComponent("notenoughcreativity.swap"), mX, mY);
 				}
-				GlStateManager.disableDepth();
+				GlStateManager.disableDepthTest();
 				GlStateManager.popMatrix();
 			}
 		}
 	}
 	
-	@SubscribeEvent
-	public void onGuiClick(GuiScreenEvent.MouseInputEvent.Pre e) {
-		if (e.getGui() instanceof GuiContainerCreative) {
-			GuiContainerCreative gcc = (GuiContainerCreative)e.getGui();
-			if (gcc.getSelectedTabIndex() == CreativeTabs.INVENTORY.getTabIndex()) {
-				if (Mouse.getEventButtonState() && Mouse.getEventButton() == 0) {
-					int mX = Mouse.getEventX() * e.getGui().width / e.getGui().mc.displayWidth;
-					int mY = e.getGui().height - Mouse.getEventY() * e.getGui().height / e.getGui().mc.displayHeight - 1;
+	public void onGuiClick(GuiScreenEvent.MouseClickedEvent e) {
+		if (e.getGui() instanceof CreativeScreen) {
+			CreativeScreen gcc = (CreativeScreen)e.getGui();
+			if (gcc.getSelectedTabIndex() == ItemGroup.INVENTORY.getIndex()) {
+				if (e.getButton() == 0) {
+					double mX = e.getMouseX();
+					double mY = e.getMouseY();
 					int x = gcc.getGuiLeft()+172;
 					int y = gcc.getGuiTop()+89;
 					if (mX >= x && mX < x+18 &&
@@ -162,18 +188,19 @@ public class NEClient {
 		}
 	}
 	
-	public static void middleClickMouse() {
-		if (NotEnoughCreativity.isCreativePlus(Minecraft.getMinecraft().player)) {
-			RayTraceResult rtr = Minecraft.getMinecraft().objectMouseOver;
-			if (rtr != null) {
-				if (rtr.typeOfHit == Type.BLOCK) {
-					new MessagePickBlock(rtr.getBlockPos(), (float)rtr.hitVec.x, (float)rtr.hitVec.y, (float)rtr.hitVec.z, rtr.sideHit, GuiScreen.isCtrlKeyDown()).sendToServer();
-				} else if (rtr.typeOfHit == Type.ENTITY) {
-					new MessagePickEntity(rtr.entityHit.getEntityId(), (float)rtr.hitVec.x, (float)rtr.hitVec.y, (float)rtr.hitVec.z, GuiScreen.isCtrlKeyDown()).sendToServer();
+	public void onClick(ClickInputEvent e) {
+		if (e.getKeyBinding() == Minecraft.getInstance().gameSettings.keyBindPickBlock) {
+			if (NotEnoughCreativity.isCreativePlus(Minecraft.getInstance().player)) {
+				RayTraceResult rtr = Minecraft.getInstance().objectMouseOver;
+				if (rtr != null) {
+					if (rtr instanceof BlockRayTraceResult) {
+						new MessagePickBlock(((BlockRayTraceResult)rtr).getPos(), (float)rtr.getHitVec().x, (float)rtr.getHitVec().y, (float)rtr.getHitVec().z, ((BlockRayTraceResult) rtr).getFace(), Screen.hasControlDown()).sendToServer();
+					} else if (rtr instanceof EntityRayTraceResult) {
+						new MessagePickEntity(((EntityRayTraceResult)rtr).getEntity().getEntityId(), (float)rtr.getHitVec().x, (float)rtr.getHitVec().y, (float)rtr.getHitVec().z, Screen.hasControlDown()).sendToServer();
+					}
 				}
+				e.setCanceled(true);
 			}
-			// prevent default handler from running
-			Minecraft.getMinecraft().objectMouseOver = null;
 		}
 	}
 	

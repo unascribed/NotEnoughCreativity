@@ -1,6 +1,6 @@
 package com.unascribed.notenoughcreativity;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 
 public enum Ability {
 	NOPICKUP,
@@ -10,8 +10,8 @@ public enum Ability {
 	PICKSWAP,
 	;
 	
-	public boolean isEnabled(EntityPlayer player) {
+	public boolean isEnabled(PlayerEntity player) {
 		if (player == null) return false;
-		return NotEnoughCreativity.isCreativePlus(player) && (player.getEntityData().getInteger("NotEnoughCreativityAbilities") & (1 << ordinal())) != 0;
+		return NotEnoughCreativity.isCreativePlus(player) && (player.getPersistentData().getInt("NotEnoughCreativityAbilities") & (1 << ordinal())) != 0;
 	}
 }

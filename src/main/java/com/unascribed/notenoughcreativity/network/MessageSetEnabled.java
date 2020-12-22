@@ -1,12 +1,12 @@
 package com.unascribed.notenoughcreativity.network;
 
-import com.elytradev.concrete.network.Message;
-import com.elytradev.concrete.network.NetworkContext;
-import com.elytradev.concrete.network.annotation.type.ReceivedOn;
 import com.unascribed.notenoughcreativity.NotEnoughCreativity;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Message;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.NetworkContext;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Side;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.type.ReceivedOn;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.entity.player.PlayerEntity;
 
 @ReceivedOn(Side.SERVER)
 public class MessageSetEnabled extends Message {
@@ -23,9 +23,9 @@ public class MessageSetEnabled extends Message {
 	}
 	
 	@Override
-	protected void handle(EntityPlayer player) {
-		if (player.capabilities.isCreativeMode) {
-			player.getEntityData().setBoolean("NotEnoughCreativity", enabled);
+	protected void handle(PlayerEntity player) {
+		if (player.abilities.isCreativeMode) {
+			player.getPersistentData().putBoolean("NotEnoughCreativity", enabled);
 			NotEnoughCreativity.updateInventory(player);
 		}
 	}

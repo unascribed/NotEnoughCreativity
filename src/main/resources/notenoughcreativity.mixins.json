@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.unascribed.notenoughcreativity.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "notenoughcreativity.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

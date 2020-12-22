@@ -1,14 +1,14 @@
 package com.unascribed.notenoughcreativity.network;
 
-import com.elytradev.concrete.network.Message;
-import com.elytradev.concrete.network.NetworkContext;
-import com.elytradev.concrete.network.annotation.field.MarshalledAs;
-import com.elytradev.concrete.network.annotation.type.ReceivedOn;
 import com.unascribed.notenoughcreativity.Ability;
 import com.unascribed.notenoughcreativity.NotEnoughCreativity;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Message;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.NetworkContext;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Side;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.field.MarshalledAs;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.type.ReceivedOn;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.entity.player.PlayerEntity;
 
 @ReceivedOn(Side.SERVER)
 public class MessageSetAbility extends Message {
@@ -28,15 +28,15 @@ public class MessageSetAbility extends Message {
 	}
 	
 	@Override
-	protected void handle(EntityPlayer player) {
-		int i = player.getEntityData().getInteger("NotEnoughCreativityAbilities");
+	protected void handle(PlayerEntity player) {
+		int i = player.getPersistentData().getInt("NotEnoughCreativityAbilities");
 		int bit = 1 << ability;
 		if (enabled) {
 			i |= bit;
 		} else {
 			i &= ~bit;
 		}
-		player.getEntityData().setInteger("NotEnoughCreativityAbilities", i);
+		player.getPersistentData().putInt("NotEnoughCreativityAbilities", i);
 		new MessageAbilities(i).sendTo(player);
 	}
 	

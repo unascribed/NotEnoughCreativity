@@ -1,16 +1,16 @@
 package com.unascribed.notenoughcreativity.network;
 
-import com.elytradev.concrete.network.Message;
-import com.elytradev.concrete.network.NetworkContext;
-import com.elytradev.concrete.network.annotation.field.MarshalledAs;
-import com.elytradev.concrete.network.annotation.type.ReceivedOn;
 import com.unascribed.notenoughcreativity.NotEnoughCreativity;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Message;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.NetworkContext;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Side;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.field.MarshalledAs;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.type.ReceivedOn;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.EntityRayTraceResult;
+import net.minecraft.util.math.vector.Vector3d;
 
 @ReceivedOn(Side.SERVER)
 public class MessagePickEntity extends Message {
@@ -41,11 +41,11 @@ public class MessagePickEntity extends Message {
 	}
 	
 	@Override
-	protected void handle(EntityPlayer player) {
+	protected void handle(PlayerEntity player) {
 		if (!NotEnoughCreativity.isCreativePlus(player)) return;
 		Entity e = player.world.getEntityByID(entityId);
 		if (e == null) return;
-		NotEnoughCreativity.pickBlock(player, new RayTraceResult(e, new Vec3d(hitX, hitY, hitZ)), exact);
+		NotEnoughCreativity.pickBlock(player, new EntityRayTraceResult(e, new Vector3d(hitX, hitY, hitZ)), exact);
 	}
 	
 }

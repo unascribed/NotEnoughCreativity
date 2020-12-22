@@ -1,15 +1,16 @@
 package com.unascribed.notenoughcreativity.network;
 
-import com.elytradev.concrete.network.Message;
-import com.elytradev.concrete.network.NetworkContext;
-import com.elytradev.concrete.network.annotation.field.MarshalledAs;
-import com.elytradev.concrete.network.annotation.type.ReceivedOn;
 import com.unascribed.notenoughcreativity.Ability;
 import com.unascribed.notenoughcreativity.NotEnoughCreativity;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Message;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.NetworkContext;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Side;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.field.MarshalledAs;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.type.ReceivedOn;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 @ReceivedOn(Side.CLIENT)
 public class MessageAbilities extends Message {
@@ -34,9 +35,9 @@ public class MessageAbilities extends Message {
 	}
 	
 	@Override
-	@SideOnly(Side.CLIENT)
-	protected void handle(EntityPlayer player) {
-		player.getEntityData().setInteger("NotEnoughCreativityAbilities", bits);
+	@OnlyIn(Dist.CLIENT)
+	protected void handle(PlayerEntity player) {
+		player.getPersistentData().putInt("NotEnoughCreativityAbilities", bits);
 	}
 	
 }

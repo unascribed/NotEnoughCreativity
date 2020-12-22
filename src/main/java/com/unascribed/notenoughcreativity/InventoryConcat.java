@@ -1,11 +1,9 @@
 package com.unascribed.notenoughcreativity;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextComponentTranslation;
 
 public class InventoryConcat implements IInventory {
 	private final String name;
@@ -35,25 +33,6 @@ public class InventoryConcat implements IInventory {
 	@Override
 	public boolean isEmpty() {
 		return first.isEmpty() && second.isEmpty();
-	}
-
-	@Override
-	public String getName() {
-		if (first.hasCustomName()) {
-			return first.getName();
-		} else {
-			return second.hasCustomName() ? second.getName() : name;
-		}
-	}
-
-	@Override
-	public boolean hasCustomName() {
-		return first.hasCustomName() || second.hasCustomName();
-	}
-
-	@Override
-	public ITextComponent getDisplayName() {
-		return hasCustomName() ? new TextComponentString(getName()) : new TextComponentTranslation(getName());
 	}
 
 	@Override
@@ -98,19 +77,19 @@ public class InventoryConcat implements IInventory {
 	}
 
 	@Override
-	public boolean isUsableByPlayer(EntityPlayer player) {
+	public boolean isUsableByPlayer(PlayerEntity player) {
 		return first.isUsableByPlayer(player)
 				&& second.isUsableByPlayer(player);
 	}
 
 	@Override
-	public void openInventory(EntityPlayer player) {
+	public void openInventory(PlayerEntity player) {
 		first.openInventory(player);
 		second.openInventory(player);
 	}
 
 	@Override
-	public void closeInventory(EntityPlayer player) {
+	public void closeInventory(PlayerEntity player) {
 		first.closeInventory(player);
 		second.closeInventory(player);
 	}
@@ -118,20 +97,6 @@ public class InventoryConcat implements IInventory {
 	@Override
 	public boolean isItemValidForSlot(int index, ItemStack stack) {
 		return true;
-	}
-
-	@Override
-	public int getField(int id) {
-		return 0;
-	}
-
-	@Override
-	public void setField(int id, int value) {
-	}
-
-	@Override
-	public int getFieldCount() {
-		return 0;
 	}
 
 	@Override

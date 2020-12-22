@@ -2,7 +2,9 @@ package com.unascribed.notenoughcreativity.client;
 
 import java.util.Random;
 
-import net.minecraft.client.gui.Gui;
+import com.mojang.blaze3d.matrix.MatrixStack;
+
+import net.minecraft.client.gui.AbstractGui;
 
 public class GuiParticle {
 
@@ -65,7 +67,7 @@ public class GuiParticle {
 		double interpPosX = prevPosX + (posX - prevPosX) * partialTicks;
 		double interpPosY = prevPosY + (posY - prevPosY) * partialTicks;
 
-		Gui.drawRect((int) interpPosX, (int) interpPosY, (int) interpPosX + 1, (int) interpPosY + 1, color);
+		AbstractGui.fill(new MatrixStack(), (int) interpPosX, (int) interpPosY, (int) interpPosX + 1, (int) interpPosY + 1, color);
 	}
 
 }

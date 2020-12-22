@@ -1,6 +1,5 @@
 package com.unascribed.notenoughcreativity;
 
-import com.elytradev.concrete.network.NetworkContext;
 import com.unascribed.notenoughcreativity.network.MessageAbilities;
 import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
 import com.unascribed.notenoughcreativity.network.MessageEnabled;
@@ -8,50 +7,58 @@ import com.unascribed.notenoughcreativity.network.MessagePickBlock;
 import com.unascribed.notenoughcreativity.network.MessagePickEntity;
 import com.unascribed.notenoughcreativity.network.MessageSetAbility;
 import com.unascribed.notenoughcreativity.network.MessageSetEnabled;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.NetworkContext;
 
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Items;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.ContainerPlayer;
-import net.minecraft.inventory.IContainerListener;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.container.IContainerListener;
+import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
-import net.minecraft.network.play.server.SPacketHeldItemChange;
+import net.minecraft.item.SkullItem;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.StringNBT;
+import net.minecraft.network.play.server.SHeldItemChangePacket;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent.Phase;
+import net.minecraftforge.event.TickEvent.PlayerTickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.event.entity.player.PlayerEvent.PlayerChangedDimensionEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent.PlayerRespawnEvent;
+import net.minecraftforge.eventbus.api.Event.Result;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.Mod.EventHandler;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.eventhandler.Event.Result;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerChangedDimensionEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-@Mod(modid="notenoughcreativity", name="Not Enough Creativity", version="@VERSION@")
+@Mod("notenoughcreativity")
 public class NotEnoughCreativity {
 
 	public static NetworkContext network;
 	
-	@EventHandler
-	public void onPreInit(FMLPreInitializationEvent e) {
-		network = NetworkContext.forChannel("!EnCre");
+	public NotEnoughCreativity() {
+		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onSetup);
+	}
+	
+	public void onSetup(FMLCommonSetupEvent e) {
+		network = NetworkContext.forChannel(new ResourceLocation("notenoughcreativity", "main"));
 		network.register(MessageSetEnabled.class);
 		network.register(MessageEnabled.class);
 		network.register(MessageSetAbility.class);
@@ -59,25 +66,30 @@ public class NotEnoughCreativity {
 		network.register(MessageDeleteSlot.class);
 		network.register(MessagePickBlock.class);
 		network.register(MessagePickEntity.class);
-		if (FMLCommonHandler.instance().getSide().isClient()) {
-			NEClient.INSTANCE.preInit();
-		}
-		MinecraftForge.EVENT_BUS.register(this);
+		DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> NEClient::setup);
+		MinecraftForge.EVENT_BUS.addListener(this::onLoggedIn);
+		MinecraftForge.EVENT_BUS.addListener(this::onDeath);
+		MinecraftForge.EVENT_BUS.addListener(this::onLivingDrops);
+		MinecraftForge.EVENT_BUS.addListener(this::onLivingExperienceDrop);
+		MinecraftForge.EVENT_BUS.addListener(this::onPlayerTick);
+		MinecraftForge.EVENT_BUS.addListener(this::onCriticalHit);
+		MinecraftForge.EVENT_BUS.addListener(this::onEntityPickup);
+		MinecraftForge.EVENT_BUS.addListener(this::onChangeDimension);
+		MinecraftForge.EVENT_BUS.addListener(this::onRespawn);
+		MinecraftForge.EVENT_BUS.addListener(this::onPlayerClone);
 	}
 	
-	public static boolean isCreativePlus(EntityPlayer ep) {
-		return ep.capabilities.isCreativeMode && ep.getEntityData().getBoolean("NotEnoughCreativity");
+	public static boolean isCreativePlus(PlayerEntity ep) {
+		return ep.abilities.isCreativeMode && ep.getPersistentData().getBoolean("NotEnoughCreativity");
 	}
 
-	@SubscribeEvent
 	public void onLoggedIn(PlayerLoggedInEvent e) {
-		updateInventory(e.player);
+		updateInventory(e.getPlayer());
 	}
 	
-	@SubscribeEvent
 	public void onDeath(LivingDeathEvent e) {
-		if (e.getEntity() instanceof EntityPlayer) {
-			EntityPlayer p = (EntityPlayer)e.getEntity();
+		if (e.getEntity() instanceof PlayerEntity) {
+			PlayerEntity p = (PlayerEntity)e.getEntity();
 			if (Ability.HEALTH.isEnabled(p) && !e.getSource().canHarmInCreative()) {
 				p.setHealth(0.1f);
 				e.setCanceled(true);
@@ -85,12 +97,11 @@ public class NotEnoughCreativity {
 		}
 	}
 	
-	@SubscribeEvent
 	public void onLivingDrops(LivingDropsEvent e) {
-		if (!(e.getEntityLiving() instanceof EntityPlayer)) {
+		if (!(e.getEntityLiving() instanceof PlayerEntity)) {
 			Entity attacker = e.getEntityLiving().getAttackingEntity() ;
-			if (attacker instanceof EntityPlayer) {
-				EntityPlayer p = (EntityPlayer)attacker;
+			if (attacker instanceof PlayerEntity) {
+				PlayerEntity p = (PlayerEntity)attacker;
 				if (Ability.ATTACK.isEnabled(p)) {
 					e.setCanceled(true);
 				}
@@ -98,88 +109,82 @@ public class NotEnoughCreativity {
 		}
 	}
 	
-	@SubscribeEvent
 	public void onLivingExperienceDrop(LivingExperienceDropEvent e) {
 		if (Ability.ATTACK.isEnabled(e.getAttackingPlayer())) {
 			e.setCanceled(true);
 		}
 	}
 	
-	@SubscribeEvent
 	public void onPlayerTick(PlayerTickEvent e) {
-		if (e.player.inventoryContainer instanceof ContainerCreativePlus) {
-			if (!e.player.capabilities.isCreativeMode) {
+		if (e.phase != Phase.START) return;
+		if (e.player.container instanceof ContainerCreativePlus) {
+			if (!e.player.abilities.isCreativeMode) {
 				updateInventory(e.player);
 			} else {
 				if (Ability.HEALTH.isEnabled(e.player)) {
-					e.player.capabilities.disableDamage = false;
+					e.player.abilities.disableDamage = false;
 					e.player.getFoodStats().setFoodLevel(15);
-				} else if (!e.player.capabilities.disableDamage) {
-					e.player.capabilities.disableDamage = true;
+				} else if (!e.player.abilities.disableDamage) {
+					e.player.abilities.disableDamage = true;
 					e.player.setHealth(e.player.getMaxHealth());
 				}
 			}
 		}
 	}
 	
-	@SubscribeEvent
 	public void onCriticalHit(CriticalHitEvent e) {
-		if (Ability.ATTACK.isEnabled(e.getEntityPlayer())) {
+		if (Ability.ATTACK.isEnabled(e.getPlayer())) {
 			e.setResult(Result.ALLOW);
 			e.setDamageModifier(1000);
 		}
 	}
 	
-	@SubscribeEvent
 	public void onEntityPickup(EntityItemPickupEvent e) {
-		if (Ability.NOPICKUP.isEnabled(e.getEntityPlayer())) {
+		if (Ability.NOPICKUP.isEnabled(e.getPlayer())) {
 			e.setCanceled(true);
 		}
 	}
 	
-	@SubscribeEvent
 	public void onChangeDimension(PlayerChangedDimensionEvent e) {
-		updateInventory(e.player);
+		updateInventory(e.getPlayer());
 	}
 	
-	@SubscribeEvent
 	public void onRespawn(PlayerRespawnEvent e) {
-		updateInventory(e.player, true);
+		updateInventory(e.getPlayer(), true);
 	}
 	
-	@SubscribeEvent
 	public void onPlayerClone(PlayerEvent.Clone e) {
-		NBTTagCompound from = e.getOriginal().getEntityData();
-		NBTTagCompound to = e.getEntityPlayer().getEntityData();
-		to.setBoolean("NotEnoughCreativity", from.getBoolean("NotEnoughCreativity"));
-		to.setInteger("NotEnoughCreativityAbilities", from.getInteger("NotEnoughCreativityAbilities"));
-		if (from.hasKey("NotEnoughCreativityInventory")) {
-			to.setTag("NotEnoughCreativityInventory", from.getTag("NotEnoughCreativityInventory"));
+		CompoundNBT from = e.getOriginal().getPersistentData();
+		CompoundNBT to = e.getPlayer().getPersistentData();
+		to.putBoolean("NotEnoughCreativity", from.getBoolean("NotEnoughCreativity"));
+		to.putInt("NotEnoughCreativityAbilities", from.getInt("NotEnoughCreativityAbilities"));
+		if (from.contains("NotEnoughCreativityInventory")) {
+			to.put("NotEnoughCreativityInventory", from.get("NotEnoughCreativityInventory"));
 		}
-		updateInventory(e.getEntityPlayer(), false);
+		updateInventory(e.getPlayer(), false);
 	}
 	
-	public static void updateInventory(EntityPlayer player) {
+	public static void updateInventory(PlayerEntity player) {
 		updateInventory(player, true);
 	}
 	
-	public static void updateInventory(EntityPlayer player, boolean addListener) {
+	public static void updateInventory(PlayerEntity player, boolean addListener) {
 		boolean enabled = isCreativePlus(player);
-		Container orig = player.inventoryContainer;
-		Container nw;
+		PlayerContainer orig = player.container;
+		PlayerContainer nw;
 		if (enabled) {
 			nw = new ContainerCreativePlus(player);
 		} else {
-			nw = new ContainerPlayer(player.inventory, !player.world.isRemote, player);
+			nw = new PlayerContainer(player.inventory, !player.world.isRemote, player);
 		}
-		player.inventoryContainer = nw;
+		player.container = nw;
 		if (orig == player.openContainer) {
 			player.openContainer = nw;
 		}
 		if (!player.world.isRemote) {
 			new MessageEnabled(enabled).sendTo(player);
 			if (enabled) {
-				new MessageAbilities(player.getEntityData().getInteger("NotEnoughCreativityAbilities")).sendTo(player);
+				new MessageAbilities(player.getPersistentData().getInt("NotEnoughCreativityAbilities")).sendTo(player);
 			}
 		}
 		if (addListener && player instanceof IContainerListener) {
@@ -191,30 +196,31 @@ public class NotEnoughCreativity {
 		}
 	}
 
-	public static void pickBlock(EntityPlayer player, RayTraceResult target, boolean exact) {
+	public static void pickBlock(PlayerEntity player, RayTraceResult target, boolean exact) {
 		World world = player.world;
 		
 		ItemStack result;
 		TileEntity te = null;
 
-		if (target.typeOfHit == RayTraceResult.Type.BLOCK) {
-			IBlockState state = world.getBlockState(target.getBlockPos());
+		if (target.getType() == RayTraceResult.Type.BLOCK) {
+			BlockPos pos = ((BlockRayTraceResult)target).getPos();
+			BlockState state = world.getBlockState(pos);
 
-			if (state.getBlock().isAir(state, world, target.getBlockPos())) {
+			if (state.getBlock().isAir(state, world, pos)) {
 				return;
 			}
 
 			if (exact && state.getBlock().hasTileEntity(state)) {
-				te = world.getTileEntity(target.getBlockPos());
+				te = world.getTileEntity(pos);
 			}
 
-			result = state.getBlock().getPickBlock(state, target, world, target.getBlockPos(), player);
+			result = state.getBlock().getPickBlock(state, target, world, pos, player);
 		} else {
-			if (target.typeOfHit != RayTraceResult.Type.ENTITY || target.entityHit == null) {
+			if (target.getType() != RayTraceResult.Type.ENTITY) {
 				return;
 			}
 
-			result = target.entityHit.getPickedResult(target);
+			result = ((EntityRayTraceResult)target).getEntity().getPickedResult(target);
 		}
 
 		if (result.isEmpty()) {
@@ -225,7 +231,7 @@ public class NotEnoughCreativity {
 			storeTEInStack(result, te);
 		}
 
-		IInventory concat = new InventoryConcat("", ((ContainerCreativePlus)player.inventoryContainer).mirror, player.inventory);
+		IInventory concat = new InventoryConcat("", ((ContainerCreativePlus)player.container).mirror, player.inventory);
 		int firstAny = getSlotFor(concat, result);
 		
 		if (firstAny >= 54 && firstAny < 54+9) {
@@ -248,8 +254,8 @@ public class NotEnoughCreativity {
 				concat.setInventorySlotContents(firstAny, cur);
 			}
 		}
-		if (player instanceof EntityPlayerMP) {
-			((EntityPlayerMP)player).connection.sendPacket(new SPacketHeldItemChange(player.inventory.currentItem));
+		if (player instanceof ServerPlayerEntity) {
+			((ServerPlayerEntity)player).connection.sendPacket(new SHeldItemChangePacket(player.inventory.currentItem));
 		}
 	}
 	
@@ -299,20 +305,20 @@ public class NotEnoughCreativity {
 	}
 
 	private static ItemStack storeTEInStack(ItemStack stack, TileEntity te) {
-		NBTTagCompound teNbt = te.writeToNBT(new NBTTagCompound());
+		CompoundNBT teNbt = te.write(new CompoundNBT());
 
-		if (stack.getItem() == Items.SKULL && teNbt.hasKey("Owner")) {
-			NBTTagCompound owner = teNbt.getCompoundTag("Owner");
-			NBTTagCompound corrected = new NBTTagCompound();
-			corrected.setTag("SkullOwner", owner);
-			stack.setTagCompound(corrected);
+		if (stack.getItem() instanceof SkullItem && teNbt.contains("Owner")) {
+			CompoundNBT owner = teNbt.getCompound("Owner");
+			CompoundNBT corrected = new CompoundNBT();
+			corrected.put("SkullOwner", owner);
+			stack.setTag(corrected);
 			return stack;
 		} else {
 			stack.setTagInfo("BlockEntityTag", teNbt);
-			NBTTagCompound display = new NBTTagCompound();
-			NBTTagList lore = new NBTTagList();
-			lore.appendTag(new NBTTagString("(+NBT)"));
-			display.setTag("Lore", lore);
+			CompoundNBT display = new CompoundNBT();
+			ListNBT lore = new ListNBT();
+			lore.add(StringNBT.valueOf("(+NBT)"));
+			display.put("Lore", lore);
 			stack.setTagInfo("display", display);
 			return stack;
 		}

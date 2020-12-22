@@ -1,13 +1,15 @@
 package com.unascribed.notenoughcreativity.client;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.lwjgl.input.Keyboard;
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL11;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.unascribed.notenoughcreativity.Ability;
 import com.unascribed.notenoughcreativity.ContainerCreativePlus;
 import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
@@ -15,17 +17,18 @@ import com.unascribed.notenoughcreativity.network.MessageSetAbility;
 
 import com.google.common.collect.Lists;
 
-import net.minecraft.client.audio.PositionedSoundRecord;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.GlStateManager.DestFactor;
-import net.minecraft.client.renderer.GlStateManager.SourceFactor;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SimpleSound;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvents;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TranslationTextComponent;
 
-public class GuiCreativePlus extends GuiContainer {
+public class GuiCreativePlus extends ContainerScreen<ContainerCreativePlus> {
 
 	private static final ResourceLocation BG = new ResourceLocation("notenoughcreativity", "textures/gui/inventory.png");
 	
@@ -39,7 +42,7 @@ public class GuiCreativePlus extends GuiContainer {
 	private Ability hoveredAbility;
 	
 	public GuiCreativePlus(ContainerCreativePlus container) {
-		super(container);
+		super(container, Minecraft.getInstance().player.inventory, new TranslationTextComponent("notenoughcreativity.title"));
 		this.container = container;
 		xSizeAddn = 52;
 		ySizeAddn = 162;
@@ -56,37 +59,37 @@ public class GuiCreativePlus extends GuiContainer {
 	}
 
 	@Override
-	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-		drawDefaultBackground();
-		super.drawScreen(mouseX, mouseY, partialTicks);
+	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+		renderBackground(matrixStack);
+		super.render(matrixStack, mouseX, mouseY, partialTicks);
 		
 		hoveredAbility = null;
 		
 		int x = getGuiLeft()+getXSize()-18;
 		int y = getGuiTop()+4;
-		mc.renderEngine.bindTexture(BG);
+		minecraft.getTextureManager().bindTexture(BG);
 		GlStateManager.disableLighting();
 		for (Ability a : Ability.values()) {
-			drawRect(x, y, x+11, y+11, 0xFF000000);
-			if (a.isEnabled(mc.player)) {
-				GlStateManager.color(1, 1, 0);
+			fill(matrixStack, x, y, x+11, y+11, 0xFF000000);
+			if (a.isEnabled(minecraft.player)) {
+				GlStateManager.color4f(1, 1, 0, 1);
 			} else {
-				GlStateManager.color(0.5f, 0.5f, 0.5f);
+				GlStateManager.color4f(0.5f, 0.5f, 0.5f, 1);
 			}
-			drawModalRectWithCustomSizedTexture(x+1, y+1, 251+(a.ordinal()*9), 0, 9, 9, 384, 384);
-			if (a.isEnabled(mc.player)) {
-				GlStateManager.color(1, 1, 1, 0.2f);
+			blit(matrixStack, x+1, y+1, 251+(a.ordinal()*9), 0, 9, 9, 384, 384);
+			if (a.isEnabled(minecraft.player)) {
+				GlStateManager.color4f(1, 1, 1, 0.2f);
 				ThreadLocalRandom r = ThreadLocalRandom.current();
 				GlStateManager.enableBlend();
-				GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
-				GlStateManager.disableAlpha();
+				GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+				GlStateManager.disableAlphaTest();
 				for (int i = 0; i < 6; i++) {
 					GlStateManager.pushMatrix();
-					GlStateManager.translate(r.nextFloat()-r.nextFloat(), r.nextFloat()-r.nextFloat(), 0);
-					drawModalRectWithCustomSizedTexture(x+1, y+1, 251+(a.ordinal()*9), 0, 9, 9, 384, 384);
+					GlStateManager.translatef(r.nextFloat()-r.nextFloat(), r.nextFloat()-r.nextFloat(), 0);
+					blit(matrixStack, x+1, y+1, 251+(a.ordinal()*9), 0, 9, 9, 384, 384);
 					GlStateManager.popMatrix();
 				}
-				GlStateManager.enableAlpha();
+				GlStateManager.enableAlphaTest();
 			}
 			if (mouseX >= x && mouseX < x+11 && mouseY >= y && mouseY < y+11) {
 				hoveredAbility = a;
@@ -94,32 +97,32 @@ public class GuiCreativePlus extends GuiContainer {
 			x -= 12;
 		}
 		
-		GlStateManager.disableTexture2D();
+		GlStateManager.disableTexture();
 		GlStateManager.enableBlend();
-		GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
-		GlStateManager.disableAlpha();
+		GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		GlStateManager.disableAlphaTest();
 		for (GuiParticle gp : particles) {
 			gp.render(partialTicks);
 		}
-		GlStateManager.enableTexture2D();
-		GlStateManager.enableAlpha();
+		GlStateManager.enableTexture();
+		GlStateManager.enableAlphaTest();
 		if (getSlotUnderMouse() == container.deleteSlot) {
-			drawHoveringText(I18n.format("inventory.binSlot"), mouseX, mouseY);
+			renderTooltip(matrixStack, Lists.newArrayList(IReorderingProcessor.fromString(I18n.format("inventory.binSlot"), Style.EMPTY)), mouseX, mouseY);
 		} else if (getSlotUnderMouse() == container.returnSlot) {
-			drawHoveringText(I18n.format("notenoughcreativity.exit"), mouseX, mouseY);
+			renderTooltip(matrixStack, Lists.newArrayList(IReorderingProcessor.fromString(I18n.format("notenoughcreativity.exit"), Style.EMPTY)), mouseX, mouseY);
 		} else if (hoveredAbility != null) {
-			drawHoveringText(Lists.newArrayList(
-					(hoveredAbility.isEnabled(mc.player) ? "§e" : "")+I18n.format("notenoughcreativity.ability."+(hoveredAbility.name().toLowerCase(Locale.ROOT))+".name"),
-					"§7"+I18n.format("notenoughcreativity.ability."+(hoveredAbility.name().toLowerCase(Locale.ROOT))+".desc")
+			renderTooltip(matrixStack, Lists.newArrayList(
+					IReorderingProcessor.fromString((hoveredAbility.isEnabled(minecraft.player) ? "§e" : "")+I18n.format("notenoughcreativity.ability."+(hoveredAbility.name().toLowerCase(Locale.ROOT))+".name"), Style.EMPTY),
+					IReorderingProcessor.fromString("§7"+I18n.format("notenoughcreativity.ability."+(hoveredAbility.name().toLowerCase(Locale.ROOT))+".desc"), Style.EMPTY)
 				), mouseX, mouseY);
 		} else {
-			renderHoveredToolTip(mouseX, mouseY);
+			renderHoveredTooltip(matrixStack, mouseX, mouseY);
 		}
 	}
 	
 	@Override
-	public void updateScreen() {
-		super.updateScreen();
+	public void tick() {
+		super.tick();
 		Iterator<GuiParticle> iter = particles.iterator();
 		while (iter.hasNext()) {
 			GuiParticle gp = iter.next();
@@ -131,10 +134,10 @@ public class GuiCreativePlus extends GuiContainer {
 		}
 		int x = getGuiLeft()+getXSize()-18;
 		int y = getGuiTop()+4;
-		mc.renderEngine.bindTexture(BG);
+		minecraft.getTextureManager().bindTexture(BG);
 		GlStateManager.disableLighting();
 		for (Ability a : Ability.values()) {
-			if (a.isEnabled(mc.player) && Math.random() < 0.2) {
+			if (a.isEnabled(minecraft.player) && Math.random() < 0.2) {
 				GuiParticle gp = new GuiParticle(x+2+(Math.random()*7), y+2+(Math.random()*7));
 				gp.color = 0xFFFFFF55;
 				gp.motionX = (Math.random()-0.5)/2;
@@ -148,48 +151,48 @@ public class GuiCreativePlus extends GuiContainer {
 	}
 	
 	@Override
-	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-		mc.renderEngine.bindTexture(BG);
+	protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+		minecraft.textureManager.bindTexture(BG);
 		int x = ((width-xSize)/2)-xSizeAddn;
 		int y = (height-ySize)/2;
-		drawModalRectWithCustomSizedTexture(x, y, 0, 0, xSize+xSizeAddn, ySize, 384, 384);
-		GuiInventory.drawEntityOnScreen(x+51, y+82, 30, x+51-mouseX, y+30-mouseY, mc.player);
+		blit(matrixStack, x, y, 0, 0, xSize+xSizeAddn, ySize, 384, 384);
+		InventoryScreen.drawEntityOnScreen(x+51, y+82, 30, x+51-mouseX, y+30-mouseY, minecraft.player);
 	}
 	
 	@Override
-	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-		fontRenderer.drawString(I18n.format("notenoughcreativity.title"), -xSizeAddn+7, 6, 0x404040);
-		fontRenderer.drawString(I18n.format("container.crafting"), -xSizeAddn+7, 108, 0x404040);
+	protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+		font.drawString(matrixStack, I18n.format("notenoughcreativity.title"), -xSizeAddn+7, 6, 0x404040);
+		font.drawString(matrixStack, I18n.format("container.crafting"), -xSizeAddn+7, 108, 0x404040);
 	}
 	
 	@Override
-	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
 		if (hoveredAbility != null && mouseButton == 0) {
-			boolean newState = !hoveredAbility.isEnabled(mc.player);
+			boolean newState = !hoveredAbility.isEnabled(minecraft.player);
 			new MessageSetAbility(hoveredAbility, newState).sendToServer();
 			if (newState) {
-				mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.ENTITY_ZOMBIE_VILLAGER_CONVERTED, 2));
+				minecraft.getSoundHandler().play(SimpleSound.master(SoundEvents.ENTITY_ZOMBIE_VILLAGER_CONVERTED, 2));
 			} else {
-				mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.ENTITY_ZOMBIE_INFECT, 2));
+				minecraft.getSoundHandler().play(SimpleSound.master(SoundEvents.ENTITY_ZOMBIE_INFECT, 2));
 			}
-			return;
+			return true;
 		}
-		super.mouseClicked(mouseX, mouseY, mouseButton);
+		return super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 	
 	@Override
-	protected void keyTyped(char typedChar, int keyCode) throws IOException {
-		if (keyCode == Keyboard.KEY_DELETE) {
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (keyCode == GLFW.GLFW_KEY_DELETE) {
 			if (getSlotUnderMouse() != null) {
 				new MessageDeleteSlot(getSlotUnderMouse().slotNumber).sendToServer();
 			}
-			return;
+			return true;
 		}
-		super.keyTyped(typedChar, keyCode);
+		return super.keyPressed(keyCode, scanCode, modifiers);
 	}
 	
 	@Override
-	protected boolean hasClickedOutside(int mX, int mY, int x, int y) {
+	protected boolean hasClickedOutside(double mX, double mY, int x, int y, int button) {
 		return mX < x-xSizeAddn || mY < y || mX >= x+xSize || mY >= (mX >= x-xSizeAddn && mX < x ? y+ySizeAddn : y+ySize);
 	}
 	

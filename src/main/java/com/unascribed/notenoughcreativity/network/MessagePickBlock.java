@@ -1,17 +1,17 @@
 package com.unascribed.notenoughcreativity.network;
 
-import com.elytradev.concrete.network.Message;
-import com.elytradev.concrete.network.NetworkContext;
-import com.elytradev.concrete.network.annotation.field.MarshalledAs;
-import com.elytradev.concrete.network.annotation.type.ReceivedOn;
 import com.unascribed.notenoughcreativity.NotEnoughCreativity;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Message;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.NetworkContext;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Side;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.field.MarshalledAs;
+import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.type.ReceivedOn;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.vector.Vector3d;
 
 @ReceivedOn(Side.SERVER)
 public class MessagePickBlock extends Message {
@@ -30,11 +30,11 @@ public class MessagePickBlock extends Message {
 	@MarshalledAs("f32")
 	private float hitZ;
 	
-	private EnumFacing sideHit;
+	private Direction sideHit;
 	
 	private boolean exact;
 
-	public MessagePickBlock(BlockPos pos, float hitX, float hitY, float hitZ, EnumFacing sideHit, boolean exact) {
+	public MessagePickBlock(BlockPos pos, float hitX, float hitY, float hitZ, Direction sideHit, boolean exact) {
 		super(NotEnoughCreativity.network);
 		this.x = pos.getX();
 		this.y = pos.getY();
@@ -51,9 +51,9 @@ public class MessagePickBlock extends Message {
 	}
 	
 	@Override
-	protected void handle(EntityPlayer player) {
+	protected void handle(PlayerEntity player) {
 		if (!NotEnoughCreativity.isCreativePlus(player)) return;
-		NotEnoughCreativity.pickBlock(player, new RayTraceResult(new Vec3d(hitX, hitY, hitZ), sideHit, new BlockPos(x, y, z)), exact);
+		NotEnoughCreativity.pickBlock(player, new BlockRayTraceResult(new Vector3d(hitX, hitY, hitZ), sideHit, new BlockPos(x, y, z), false), exact);
 	}
 	
 }
