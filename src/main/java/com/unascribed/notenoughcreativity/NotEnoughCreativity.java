@@ -18,6 +18,7 @@ import net.minecraft.inventory.container.IContainerListener;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.SkullItem;
+import net.minecraft.item.SpawnEggItem;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.StringNBT;
@@ -67,7 +68,7 @@ public class NotEnoughCreativity {
 		network.register(MessageDeleteSlot.class);
 		network.register(MessagePickBlock.class);
 		network.register(MessagePickEntity.class);
-		DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> NEClient::setup);
+		DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> NEClientSpringboard::setup);
 		MinecraftForge.EVENT_BUS.addListener(this::onLoggedIn);
 		MinecraftForge.EVENT_BUS.addListener(this::onDeath);
 		MinecraftForge.EVENT_BUS.addListener(this::onLivingDrops);
@@ -223,7 +224,22 @@ public class NotEnoughCreativity {
 				return;
 			}
 
-			result = ((EntityRayTraceResult)target).getEntity().getPickedResult(target);
+			try {
+				result = ((EntityRayTraceResult)target).getEntity().getPickedResult(target);
+			} catch (NoSuchMethodError er) {
+				if (er.getMessage().contains("SpawnEggItem")) {
+					Entity e = ((EntityRayTraceResult)target).getEntity();
+					result = ItemStack.EMPTY;
+					for (SpawnEggItem egg : SpawnEggItem.getEggs()) {
+						if (egg.hasType(null, e.getType())) {
+							result = new ItemStack(egg);
+							break;
+						}
+					}
+				} else {
+					throw er;
+				}
+			}
 		}
 
 		if (result.isEmpty()) {

@@ -164,7 +164,7 @@ public final class DefaultMarshallers {
 	/**
 	 * UTF-8 varint-length-prefixed string.
 	 */
-	public static final Marshaller<String> STRING = weld(PacketBuffer::writeString, PacketBuffer::readString);
+	public static final Marshaller<String> STRING = weld(PacketBuffer::writeString, pb -> pb.readString(32767));
 	
 	/**
 	 * Packed ItemStack.

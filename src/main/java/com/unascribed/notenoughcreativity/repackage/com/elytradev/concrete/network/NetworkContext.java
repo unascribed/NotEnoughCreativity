@@ -77,7 +77,9 @@ public final class NetworkContext {
 	private NetworkContext(ResourceLocation channel) {
 		this.channel = channel;
 		EventNetworkChannel ch = NetworkRegistry.newEventChannel(channel, () -> "0", s -> true, s -> true);
-		ch.addListener(this::onClientCustomPacket);
+		try {
+			ch.addListener(this::onClientCustomPacket);
+		} catch (Throwable t) {}
 		ch.addListener(this::onServerCustomPacket);
 	}
 	

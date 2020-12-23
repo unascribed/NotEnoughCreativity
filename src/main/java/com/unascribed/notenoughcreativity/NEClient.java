@@ -46,10 +46,6 @@ public class NEClient {
 	
 	private static final ResourceLocation SWAP = new ResourceLocation("notenoughcreativity", "textures/gui/swap.png");
 	
-	public static void setup() {
-		INSTANCE.setupInst();
-	}
-	
 	public void setupInst() {
 		MinecraftForge.EVENT_BUS.addListener(this::onClick);
 		MinecraftForge.EVENT_BUS.addListener(this::onRenderTick);
