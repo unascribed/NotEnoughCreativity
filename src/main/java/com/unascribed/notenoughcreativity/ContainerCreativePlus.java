@@ -167,8 +167,6 @@ public class ContainerCreativePlus extends PlayerContainer {
 			}
 			
 		});
-		
-		System.out.println("total "+inventorySlots.size()+" slots");
 	}
 	
 	@Override

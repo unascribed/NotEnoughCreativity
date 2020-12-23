@@ -34,6 +34,8 @@ import net.minecraftforge.client.gui.ForgeIngameGui;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
+import net.minecraftforge.event.TickEvent.RenderTickEvent;
+import net.minecraftforge.fml.CrashReportExtender;
 
 public class NEClient {
 
@@ -50,6 +52,7 @@ public class NEClient {
 	
 	public void setupInst() {
 		MinecraftForge.EVENT_BUS.addListener(this::onClick);
+		MinecraftForge.EVENT_BUS.addListener(this::onRenderTick);
 		MinecraftForge.EVENT_BUS.addListener(this::onClientTick);
 		MinecraftForge.EVENT_BUS.addListener(this::onDisplayGui);
 		MinecraftForge.EVENT_BUS.addListener(this::onDrawOverlay);
@@ -57,6 +60,12 @@ public class NEClient {
 		MinecraftForge.EVENT_BUS.addListener(this::onPostRenderGui);
 		MinecraftForge.EVENT_BUS.addListener(this::onRenderTooltipPost);
 		MinecraftForge.EVENT_BUS.addListener(this::onRenderTooltipPre);
+		CrashReportExtender.registerCrashCallable("", () -> {
+			if (needRestoreGamma) {
+				Minecraft.getInstance().gameSettings.gamma = oldGamma;
+			}
+			return "";
+		});
 	}
 	
 	private static Field findField(Class<?> clazz, String... names) {
@@ -102,6 +111,22 @@ public class NEClient {
 		}
 	}
 	
+	private boolean needRestoreGamma = false;
+	private double oldGamma;
+	
+	public void onRenderTick(RenderTickEvent e) {
+		if (e.phase == Phase.START) {
+			if (Ability.NIGHTVISION.isEnabled(Minecraft.getInstance().player)) {
+				needRestoreGamma = true;
+				oldGamma = Minecraft.getInstance().gameSettings.gamma;
+				Minecraft.getInstance().gameSettings.gamma = 200;
+			}
+		} else if (needRestoreGamma) {
+			needRestoreGamma = false;
+			Minecraft.getInstance().gameSettings.gamma = oldGamma;
+		}
+	}
+	
 	public void onClientTick(ClientTickEvent e) {
 		if (e.phase == Phase.END) {
 			if (Ability.INSTABREAK.isEnabled(Minecraft.getInstance().player)) {
@@ -136,7 +161,7 @@ public class NEClient {
 	public void onDisplayGui(GuiOpenEvent e) {
 		if (e.getGui() instanceof CreativeScreen) {
 			ClientPlayerEntity p = Minecraft.getInstance().player;
-			if (p.getPersistentData().getBoolean("NotEnoughCreativity")) {
+			if (NotEnoughCreativity.isCreativePlus(p)) {
 				e.setGui(new GuiCreativePlus(new ContainerCreativePlus(p)));
 			}
 		}

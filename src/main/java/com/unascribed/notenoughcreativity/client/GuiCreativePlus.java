@@ -25,6 +25,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
+import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TranslationTextComponent;
 
@@ -43,6 +44,7 @@ public class GuiCreativePlus extends ContainerScreen<ContainerCreativePlus> {
 	
 	public GuiCreativePlus(ContainerCreativePlus container) {
 		super(container, Minecraft.getInstance().player.inventory, new TranslationTextComponent("notenoughcreativity.title"));
+		Minecraft.getInstance().player.openContainer = container;
 		this.container = container;
 		xSizeAddn = 52;
 		ySizeAddn = 162;
@@ -111,10 +113,9 @@ public class GuiCreativePlus extends ContainerScreen<ContainerCreativePlus> {
 		} else if (getSlotUnderMouse() == container.returnSlot) {
 			renderTooltip(matrixStack, Lists.newArrayList(IReorderingProcessor.fromString(I18n.format("notenoughcreativity.exit"), Style.EMPTY)), mouseX, mouseY);
 		} else if (hoveredAbility != null) {
-			renderTooltip(matrixStack, Lists.newArrayList(
-					IReorderingProcessor.fromString((hoveredAbility.isEnabled(minecraft.player) ? "§e" : "")+I18n.format("notenoughcreativity.ability."+(hoveredAbility.name().toLowerCase(Locale.ROOT))+".name"), Style.EMPTY),
-					IReorderingProcessor.fromString("§7"+I18n.format("notenoughcreativity.ability."+(hoveredAbility.name().toLowerCase(Locale.ROOT))+".desc"), Style.EMPTY)
-				), mouseX, mouseY);
+			List<IReorderingProcessor> li = Lists.newArrayList(font.trimStringToWidth(ITextProperties.func_240652_a_((hoveredAbility.isEnabled(minecraft.player) ? "§e" : "")+I18n.format("notenoughcreativity.ability."+(hoveredAbility.name().toLowerCase(Locale.ROOT))+".name")), 200));
+			li.addAll(font.trimStringToWidth(ITextProperties.func_240652_a_("§7"+I18n.format("notenoughcreativity.ability."+(hoveredAbility.name().toLowerCase(Locale.ROOT))+".desc")), 200));
+			renderTooltip(matrixStack, li, mouseX, mouseY);
 		} else {
 			renderHoveredTooltip(matrixStack, mouseX, mouseY);
 		}
@@ -155,14 +156,30 @@ public class GuiCreativePlus extends ContainerScreen<ContainerCreativePlus> {
 		minecraft.textureManager.bindTexture(BG);
 		int x = ((width-xSize)/2)-xSizeAddn;
 		int y = (height-ySize)/2;
+		if (Ability.DARKMODE.isEnabled(minecraft.player)) {
+			GlStateManager.color4f(0.2f, 0.2f, 0.3f, 0.7f);
+		} else {
+			GlStateManager.color4f(1, 1, 1, 1);
+		}
 		blit(matrixStack, x, y, 0, 0, xSize+xSizeAddn, ySize, 384, 384);
+		if (Ability.DARKMODE.isEnabled(minecraft.player)) {
+			GlStateManager.color4f(1, 1, 0, 1);
+			blit(matrixStack, x+61, y+166, 61, 166, 16, 16, 384, 384);
+			GlStateManager.color4f(1, 0.4f, 0.2f, 1);
+			blit(matrixStack, x+61, y+188, 61, 188, 16, 16, 384, 384);
+		}
+		GlStateManager.color4f(1, 1, 1, 1);
 		InventoryScreen.drawEntityOnScreen(x+51, y+82, 30, x+51-mouseX, y+30-mouseY, minecraft.player);
 	}
 	
 	@Override
 	protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
-		font.drawString(matrixStack, I18n.format("notenoughcreativity.title"), -xSizeAddn+7, 6, 0x404040);
-		font.drawString(matrixStack, I18n.format("container.crafting"), -xSizeAddn+7, 108, 0x404040);
+		int col = 0x404040;
+		if (Ability.DARKMODE.isEnabled(minecraft.player)) {
+			col = 0xFFFFFF;
+		}
+		font.drawString(matrixStack, I18n.format("notenoughcreativity.title"), -xSizeAddn+7, 6, col);
+		font.drawString(matrixStack, I18n.format("container.crafting"), -xSizeAddn+7, 108, col);
 	}
 	
 	@Override

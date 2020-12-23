@@ -36,6 +36,7 @@ import net.minecraftforge.event.TickEvent.PlayerTickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -77,6 +78,7 @@ public class NotEnoughCreativity {
 		MinecraftForge.EVENT_BUS.addListener(this::onChangeDimension);
 		MinecraftForge.EVENT_BUS.addListener(this::onRespawn);
 		MinecraftForge.EVENT_BUS.addListener(this::onPlayerClone);
+		MinecraftForge.EVENT_BUS.addListener(this::onLivingUpdate);
 	}
 	
 	public static boolean isCreativePlus(PlayerEntity ep) {
@@ -115,6 +117,15 @@ public class NotEnoughCreativity {
 		}
 	}
 	
+	// LivingUpdate runs slightly later on players, after noClip is set to isSpectator
+	public void onLivingUpdate(LivingUpdateEvent e) {
+		if (e.getEntityLiving() instanceof PlayerEntity) {
+			if (Ability.NOCLIP.isEnabled((PlayerEntity)e.getEntityLiving())) {
+				e.getEntityLiving().noClip = true;
+			}
+		}
+	}
+	
 	public void onPlayerTick(PlayerTickEvent e) {
 		if (e.phase != Phase.START) return;
 		if (e.player.container instanceof ContainerCreativePlus) {
@@ -150,7 +161,7 @@ public class NotEnoughCreativity {
 	}
 	
 	public void onRespawn(PlayerRespawnEvent e) {
-		updateInventory(e.getPlayer(), true);
+		updateInventory(e.getPlayer());
 	}
 	
 	public void onPlayerClone(PlayerEvent.Clone e) {
@@ -161,14 +172,10 @@ public class NotEnoughCreativity {
 		if (from.contains("NotEnoughCreativityInventory")) {
 			to.put("NotEnoughCreativityInventory", from.get("NotEnoughCreativityInventory"));
 		}
-		updateInventory(e.getPlayer(), false);
+		updateInventory(e.getPlayer());
 	}
 	
 	public static void updateInventory(PlayerEntity player) {
-		updateInventory(player, true);
-	}
-	
-	public static void updateInventory(PlayerEntity player, boolean addListener) {
 		boolean enabled = isCreativePlus(player);
 		PlayerContainer orig = player.container;
 		PlayerContainer nw;
@@ -177,22 +184,18 @@ public class NotEnoughCreativity {
 		} else {
 			nw = new PlayerContainer(player.inventory, !player.world.isRemote, player);
 		}
-		player.container = nw;
-		if (orig == player.openContainer) {
-			player.openContainer = nw;
-		}
 		if (!player.world.isRemote) {
 			new MessageEnabled(enabled).sendTo(player);
 			if (enabled) {
 				new MessageAbilities(player.getPersistentData().getInt("NotEnoughCreativityAbilities")).sendTo(player);
 			}
 		}
-		if (addListener && player instanceof IContainerListener) {
-			try {
-				nw.addListener((IContainerListener)player);
-			} catch (IllegalArgumentException e) {
-				// yeah, that's great, minecraft, it's already listening. cool. did you have to error?
-			}
+		player.container = nw;
+		if (orig == player.openContainer) {
+			player.openContainer = nw;
+		}
+		if (player instanceof IContainerListener) {
+			nw.addListener((IContainerListener)player);
 		}
 	}
 
