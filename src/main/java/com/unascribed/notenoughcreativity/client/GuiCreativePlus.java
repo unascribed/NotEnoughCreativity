@@ -7,7 +7,6 @@ import java.util.Locale;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.lwjgl.input.Keyboard;
-
 import com.unascribed.notenoughcreativity.Ability;
 import com.unascribed.notenoughcreativity.ContainerCreativePlus;
 import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
@@ -170,9 +169,9 @@ public class GuiCreativePlus extends GuiContainer {
 	
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-		int col = 0x404040;
+		int col = 0x192022;
 		if (Ability.DARKMODE.isEnabled(mc.player)) {
-			col = 0xFFFFFF;
+			col = 0xAAAADD;
 		}
 		fontRenderer.drawString(I18n.format("notenoughcreativity.title"), -xSizeAddn+7, 6, col);
 		fontRenderer.drawString(I18n.format("container.crafting"), -xSizeAddn+7, 108, col);

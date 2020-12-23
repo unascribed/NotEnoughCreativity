@@ -98,7 +98,7 @@ println()
 project.ext.priv = parseConfig(file('private.properties'))
 
 group = project.ext.group
-archivesBaseName = project.ext.projectName
+archivesBaseName = project.ext.projectName+"-1.12"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

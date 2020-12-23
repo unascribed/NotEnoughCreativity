@@ -1,5 +1,8 @@
 package com.unascribed.notenoughcreativity;
 
+import javax.annotation.Nullable;
+
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ClickType;
@@ -13,7 +16,10 @@ import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Constants.NBT;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ContainerCreativePlus extends ContainerPlayer {
 
@@ -93,6 +99,23 @@ public class ContainerCreativePlus extends ContainerPlayer {
 					return super.canTakeStack(playerIn);
 				}
 				@Override
+				public ResourceLocation getBackgroundLocation() {
+					if (Ability.DARKMODE.isEnabled(player)) {
+						return new ResourceLocation(ItemArmor.EMPTY_SLOT_NAMES[entityequipmentslot.getIndex()].replace("minecraft:items/", "notenoughcreativity:textures/gui/")+".png");
+					}
+					return super.getBackgroundLocation();
+				}
+				@Override
+				@Nullable
+				@SideOnly(Side.CLIENT)
+				public TextureAtlasSprite getBackgroundSprite() {
+					if (Ability.DARKMODE.isEnabled(player)) {
+						return DummyTextureAtlasSprite.INSTANCE;
+					}
+					return super.getBackgroundSprite();
+				}
+				@Override
+				@Nullable
 				public String getSlotTexture() {
 					return ItemArmor.EMPTY_SLOT_NAMES[entityequipmentslot.getIndex()];
 				}
@@ -101,6 +124,23 @@ public class ContainerCreativePlus extends ContainerPlayer {
 		
 		addSlotToContainer(new Slot(playerInv, 40, 9, 90) {
 			@Override
+			public ResourceLocation getBackgroundLocation() {
+				if (Ability.DARKMODE.isEnabled(player)) {
+					return new ResourceLocation("notenoughcreativity:textures/gui/empty_armor_slot_shield.png");
+				}
+				return super.getBackgroundLocation();
+			}
+			@Override
+			@Nullable
+			@SideOnly(Side.CLIENT)
+			public TextureAtlasSprite getBackgroundSprite() {
+				if (Ability.DARKMODE.isEnabled(player)) {
+					return DummyTextureAtlasSprite.INSTANCE;
+				}
+				return super.getBackgroundSprite();
+			}
+			@Override
+			@Nullable
 			public String getSlotTexture() {
 				return "minecraft:items/empty_armor_slot_shield";
 			}
