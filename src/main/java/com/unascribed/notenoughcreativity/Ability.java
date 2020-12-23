@@ -8,6 +8,9 @@ public enum Ability {
 	HEALTH,
 	INSTABREAK,
 	PICKSWAP,
+	NIGHTVISION,
+	NOCLIP,
+	DARKMODE
 	;
 	
 	public boolean isEnabled(EntityPlayer player) {

@@ -30,6 +30,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -102,6 +103,16 @@ public class NotEnoughCreativity {
 	public void onLivingExperienceDrop(LivingExperienceDropEvent e) {
 		if (Ability.ATTACK.isEnabled(e.getAttackingPlayer())) {
 			e.setCanceled(true);
+		}
+	}
+
+	// LivingUpdate runs slightly later on players, after noClip is set to isSpectator
+	@SubscribeEvent
+	public void onLivingUpdate(LivingUpdateEvent e) {
+		if (e.getEntityLiving() instanceof EntityPlayer) {
+			if (Ability.NOCLIP.isEnabled((EntityPlayer)e.getEntityLiving())) {
+				e.getEntityLiving().noClip = true;
+			}
 		}
 	}
 	

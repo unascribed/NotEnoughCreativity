@@ -30,9 +30,12 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.ICrashCallable;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
+import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 
 public class NEClient {
 
@@ -45,6 +48,23 @@ public class NEClient {
 	
 	public void preInit() {
 		MinecraftForge.EVENT_BUS.register(this);
+		
+		FMLCommonHandler.instance().registerCrashCallable(new ICrashCallable() {
+			
+			@Override
+			public String call() throws Exception {
+				if (needRestoreGamma) {
+					needRestoreGamma = false;
+					Minecraft.getMinecraft().gameSettings.gammaSetting = oldGamma;
+				}
+				return "";
+			}
+			
+			@Override
+			public String getLabel() {
+				return "";
+			}
+		});
 	}
 	
 	private static Field findField(Class<?> clazz, String... names) {
@@ -88,6 +108,23 @@ public class NEClient {
 				Minecraft.getMinecraft().player.setHealth(origHealth);
 				GlStateManager.popMatrix();
 			}
+		}
+	}
+	
+	private boolean needRestoreGamma = false;
+	private float oldGamma;
+	
+	@SubscribeEvent
+	public void onRenderTick(RenderTickEvent e) {
+		if (e.phase == Phase.START) {
+			if (Ability.NIGHTVISION.isEnabled(Minecraft.getMinecraft().player)) {
+				needRestoreGamma = true;
+				oldGamma = Minecraft.getMinecraft().gameSettings.gammaSetting;
+				Minecraft.getMinecraft().gameSettings.gammaSetting = 200;
+			}
+		} else if (needRestoreGamma) {
+			needRestoreGamma = false;
+			Minecraft.getMinecraft().gameSettings.gammaSetting = oldGamma;
 		}
 	}
 	

@@ -152,14 +152,30 @@ public class GuiCreativePlus extends GuiContainer {
 		mc.renderEngine.bindTexture(BG);
 		int x = ((width-xSize)/2)-xSizeAddn;
 		int y = (height-ySize)/2;
+		if (Ability.DARKMODE.isEnabled(mc.player)) {
+			GlStateManager.color(0.2f, 0.2f, 0.3f, 1);
+		} else {
+			GlStateManager.color(1, 1, 1, 1);
+		}
 		drawModalRectWithCustomSizedTexture(x, y, 0, 0, xSize+xSizeAddn, ySize, 384, 384);
+		if (Ability.DARKMODE.isEnabled(mc.player)) {
+			GlStateManager.color(1, 1, 0, 1);
+			drawModalRectWithCustomSizedTexture(x+61, y+166, 61, 166, 16, 16, 384, 384);
+			GlStateManager.color(1, 0.4f, 0.2f, 1);
+			drawModalRectWithCustomSizedTexture(x+61, y+188, 61, 188, 16, 16, 384, 384);
+		}
+		GlStateManager.color(1, 1, 1, 1);
 		GuiInventory.drawEntityOnScreen(x+51, y+82, 30, x+51-mouseX, y+30-mouseY, mc.player);
 	}
 	
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-		fontRenderer.drawString(I18n.format("notenoughcreativity.title"), -xSizeAddn+7, 6, 0x404040);
-		fontRenderer.drawString(I18n.format("container.crafting"), -xSizeAddn+7, 108, 0x404040);
+		int col = 0x404040;
+		if (Ability.DARKMODE.isEnabled(mc.player)) {
+			col = 0xFFFFFF;
+		}
+		fontRenderer.drawString(I18n.format("notenoughcreativity.title"), -xSizeAddn+7, 6, col);
+		fontRenderer.drawString(I18n.format("container.crafting"), -xSizeAddn+7, 108, col);
 	}
 	
 	@Override
