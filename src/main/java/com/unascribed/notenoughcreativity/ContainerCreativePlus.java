@@ -20,7 +20,14 @@ import net.minecraftforge.common.util.Constants.NBT;
 
 public class ContainerCreativePlus extends PlayerContainer {
 
-	private static final ResourceLocation[] ARMOR_SLOT_TEXTURES = new ResourceLocation[]{EMPTY_ARMOR_SLOT_BOOTS, EMPTY_ARMOR_SLOT_LEGGINGS, EMPTY_ARMOR_SLOT_CHESTPLATE, EMPTY_ARMOR_SLOT_HELMET};
+	public static final ResourceLocation DARK_EMPTY_ARMOR_SLOT_HELMET = new ResourceLocation("notenoughcreativity", "gui/empty_armor_slot_helmet");
+	public static final ResourceLocation DARK_EMPTY_ARMOR_SLOT_CHESTPLATE = new ResourceLocation("notenoughcreativity", "gui/empty_armor_slot_chestplate");
+	public static final ResourceLocation DARK_EMPTY_ARMOR_SLOT_LEGGINGS = new ResourceLocation("notenoughcreativity", "gui/empty_armor_slot_leggings");
+	public static final ResourceLocation DARK_EMPTY_ARMOR_SLOT_BOOTS = new ResourceLocation("notenoughcreativity", "gui/empty_armor_slot_boots");
+	public static final ResourceLocation DARK_EMPTY_ARMOR_SLOT_SHIELD = new ResourceLocation("notenoughcreativity", "gui/empty_armor_slot_shield");
+	
+	private static final ResourceLocation[] ARMOR_TEX = new ResourceLocation[]{EMPTY_ARMOR_SLOT_BOOTS, EMPTY_ARMOR_SLOT_LEGGINGS, EMPTY_ARMOR_SLOT_CHESTPLATE, EMPTY_ARMOR_SLOT_HELMET};
+	private static final ResourceLocation[] DARK_ARMOR_TEX = new ResourceLocation[]{DARK_EMPTY_ARMOR_SLOT_BOOTS, DARK_EMPTY_ARMOR_SLOT_LEGGINGS, DARK_EMPTY_ARMOR_SLOT_CHESTPLATE, DARK_EMPTY_ARMOR_SLOT_HELMET};
 	
 	private final PlayerEntity player;
 	
@@ -97,7 +104,8 @@ public class ContainerCreativePlus extends PlayerContainer {
 				@Override
 				@OnlyIn(Dist.CLIENT)
 				public Pair<ResourceLocation, ResourceLocation> getBackground() {
-					return Pair.of(PlayerContainer.LOCATION_BLOCKS_TEXTURE, ARMOR_SLOT_TEXTURES[entityequipmentslot.getIndex()]);
+					return Pair.of(LOCATION_BLOCKS_TEXTURE,
+							(Ability.DARKMODE.isEnabled(player) ? DARK_ARMOR_TEX : ARMOR_TEX)[entityequipmentslot.getIndex()]);
 				}
 			});
 		}
@@ -106,7 +114,8 @@ public class ContainerCreativePlus extends PlayerContainer {
 			@Override
 			@OnlyIn(Dist.CLIENT)
 			public Pair<ResourceLocation, ResourceLocation> getBackground() {
-				return Pair.of(PlayerContainer.LOCATION_BLOCKS_TEXTURE, PlayerContainer.EMPTY_ARMOR_SLOT_SHIELD);
+				return Pair.of(LOCATION_BLOCKS_TEXTURE,
+						Ability.DARKMODE.isEnabled(player) ? DARK_EMPTY_ARMOR_SLOT_SHIELD : EMPTY_ARMOR_SLOT_SHIELD);
 			}
 		});
 		

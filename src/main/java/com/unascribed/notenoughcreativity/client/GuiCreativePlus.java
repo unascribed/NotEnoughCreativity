@@ -7,7 +7,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
-
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.unascribed.notenoughcreativity.Ability;
@@ -64,7 +63,6 @@ public class GuiCreativePlus extends ContainerScreen<ContainerCreativePlus> {
 	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		renderBackground(matrixStack);
 		super.render(matrixStack, mouseX, mouseY, partialTicks);
-		
 		hoveredAbility = null;
 		
 		int x = getGuiLeft()+getXSize()-18;
@@ -173,10 +171,15 @@ public class GuiCreativePlus extends ContainerScreen<ContainerCreativePlus> {
 	}
 	
 	@Override
+	public int getSlotColor(int index) {
+		return Ability.DARKMODE.isEnabled(minecraft.player) ? 0x40FFFFFF : 0x80FFFFFF;
+	}
+	
+	@Override
 	protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
-		int col = 0x404040;
+		int col = 0x192022;
 		if (Ability.DARKMODE.isEnabled(minecraft.player)) {
-			col = 0xFFFFFF;
+			col = 0xAAAADD;
 		}
 		font.drawString(matrixStack, I18n.format("notenoughcreativity.title"), -xSizeAddn+7, 6, col);
 		font.drawString(matrixStack, I18n.format("container.crafting"), -xSizeAddn+7, 108, col);

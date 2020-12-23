@@ -18,6 +18,7 @@ import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.CreativeScreen;
 import net.minecraft.client.multiplayer.PlayerController;
+import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -29,6 +30,7 @@ import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.InputEvent.ClickInputEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.client.gui.ForgeIngameGui;
 import net.minecraftforge.common.MinecraftForge;
@@ -36,6 +38,7 @@ import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.RenderTickEvent;
 import net.minecraftforge.fml.CrashReportExtender;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 public class NEClient {
 
@@ -56,6 +59,7 @@ public class NEClient {
 		MinecraftForge.EVENT_BUS.addListener(this::onPostRenderGui);
 		MinecraftForge.EVENT_BUS.addListener(this::onRenderTooltipPost);
 		MinecraftForge.EVENT_BUS.addListener(this::onRenderTooltipPre);
+		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onStitch);
 		CrashReportExtender.registerCrashCallable("", () -> {
 			if (needRestoreGamma) {
 				needRestoreGamma = false;
@@ -87,6 +91,16 @@ public class NEClient {
 		throw new IllegalArgumentException("Cannot find method "+names[0]);
 	}
 
+	public void onStitch(TextureStitchEvent.Pre e) {
+		if (e.getMap().getTextureLocation().equals(AtlasTexture.LOCATION_BLOCKS_TEXTURE)) {
+			e.addSprite(ContainerCreativePlus.DARK_EMPTY_ARMOR_SLOT_HELMET);
+			e.addSprite(ContainerCreativePlus.DARK_EMPTY_ARMOR_SLOT_CHESTPLATE);
+			e.addSprite(ContainerCreativePlus.DARK_EMPTY_ARMOR_SLOT_LEGGINGS);
+			e.addSprite(ContainerCreativePlus.DARK_EMPTY_ARMOR_SLOT_BOOTS);
+			e.addSprite(ContainerCreativePlus.DARK_EMPTY_ARMOR_SLOT_SHIELD);
+		}
+	}
+	
 	public void onDrawOverlay(RenderGameOverlayEvent.Post e) {
 		if (e.getType() == ElementType.BOSSHEALTH) {
 			if (Ability.HEALTH.isEnabled(Minecraft.getInstance().player) && !Minecraft.getInstance().playerController.shouldDrawHUD()) {
