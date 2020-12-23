@@ -157,7 +157,7 @@ public class GuiCreativePlus extends ContainerScreen<ContainerCreativePlus> {
 		int x = ((width-xSize)/2)-xSizeAddn;
 		int y = (height-ySize)/2;
 		if (Ability.DARKMODE.isEnabled(minecraft.player)) {
-			GlStateManager.color4f(0.2f, 0.2f, 0.3f, 0.7f);
+			GlStateManager.color4f(0.2f, 0.2f, 0.3f, 1);
 		} else {
 			GlStateManager.color4f(1, 1, 1, 1);
 		}

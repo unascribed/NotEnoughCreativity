@@ -62,6 +62,7 @@ public class NEClient {
 		MinecraftForge.EVENT_BUS.addListener(this::onRenderTooltipPre);
 		CrashReportExtender.registerCrashCallable("", () -> {
 			if (needRestoreGamma) {
+				needRestoreGamma = false;
 				Minecraft.getInstance().gameSettings.gamma = oldGamma;
 			}
 			return "";
