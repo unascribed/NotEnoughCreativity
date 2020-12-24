@@ -70,7 +70,7 @@ public class NotEnoughCreativity {
 	}
 	
 	public static boolean isCreativePlus(EntityPlayer ep) {
-		return ep.capabilities.isCreativeMode && ep.getEntityData().getBoolean("NotEnoughCreativity");
+		return ep != null && ep.capabilities.isCreativeMode && ep.getEntityData().getBoolean("NotEnoughCreativity");
 	}
 
 	@SubscribeEvent

@@ -3,8 +3,6 @@ notenoughcreativity.title=Creative+ Inventory
 notenoughcreativity.swap=Switch to Creative+
 notenoughcreativity.exit=Switch to Creative
 
-key.notenoughcreativity.delete_item=Delete Item
-
 key.notenoughcreativity.toggle_ability.nopickup=Toggle No Item Pickup
 key.notenoughcreativity.toggle_ability.attack=Toggle Instant Kill
 key.notenoughcreativity.toggle_ability.health=Toggle Allow Damage
