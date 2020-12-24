@@ -4,16 +4,18 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.lwjgl.input.Keyboard;
 import com.unascribed.notenoughcreativity.Ability;
 import com.unascribed.notenoughcreativity.ContainerCreativePlus;
+import com.unascribed.notenoughcreativity.NEClient;
 import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
 import com.unascribed.notenoughcreativity.network.MessageSetAbility;
 
 import com.google.common.collect.Lists;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiInventory;
@@ -21,7 +23,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.GlStateManager.DestFactor;
 import net.minecraft.client.renderer.GlStateManager.SourceFactor;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.init.SoundEvents;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.ResourceLocation;
 
 public class GuiCreativePlus extends GuiContainer {
@@ -65,7 +67,7 @@ public class GuiCreativePlus extends GuiContainer {
 		int y = getGuiTop()+4;
 		mc.renderEngine.bindTexture(BG);
 		GlStateManager.disableLighting();
-		for (Ability a : Ability.values()) {
+		for (Ability a : Ability.VALUES_SORTED) {
 			drawRect(x, y, x+11, y+11, 0xFF000000);
 			if (a.isEnabled(mc.player)) {
 				GlStateManager.color(1, 1, 0);
@@ -132,7 +134,7 @@ public class GuiCreativePlus extends GuiContainer {
 		int y = getGuiTop()+4;
 		mc.renderEngine.bindTexture(BG);
 		GlStateManager.disableLighting();
-		for (Ability a : Ability.values()) {
+		for (Ability a : Ability.VALUES_SORTED) {
 			if (a.isEnabled(mc.player) && Math.random() < 0.2) {
 				GuiParticle gp = new GuiParticle(x+2+(Math.random()*7), y+2+(Math.random()*7));
 				gp.color = 0xFFFFFF55;
@@ -182,23 +184,38 @@ public class GuiCreativePlus extends GuiContainer {
 		if (hoveredAbility != null && mouseButton == 0) {
 			boolean newState = !hoveredAbility.isEnabled(mc.player);
 			new MessageSetAbility(hoveredAbility, newState).sendToServer();
-			if (newState) {
-				mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.ENTITY_ZOMBIE_VILLAGER_CONVERTED, 2));
-			} else {
-				mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.ENTITY_ZOMBIE_INFECT, 2));
-			}
+			playAbilityToggleSound(hoveredAbility, newState);
 			return;
 		}
 		super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 	
+	public static void playAbilityToggleSound(Ability a, boolean newState) {
+		float mod = 0;
+		if (a == Ability.NOCLIP) {
+			mod = 1.5f;
+		}
+		Minecraft mc = Minecraft.getMinecraft();
+		if (newState) {
+			mc.getSoundHandler().playSound(PositionedSoundRecord.getRecord(a.getSound(), 1.1f*mod, 0.5f));
+		} else {
+			mc.getSoundHandler().playSound(PositionedSoundRecord.getRecord(a.getSound(), 0.7f*mod, 0.5f));
+		}
+	}
+	
 	@Override
 	protected void keyTyped(char typedChar, int keyCode) throws IOException {
-		if (keyCode == Keyboard.KEY_DELETE) {
+		if (NEClient.INSTANCE.keyDeleteItem.isActiveAndMatches(keyCode)) {
 			if (getSlotUnderMouse() != null) {
 				new MessageDeleteSlot(getSlotUnderMouse().slotNumber).sendToServer();
 			}
 			return;
+		}
+		for (Map.Entry<Ability, KeyBinding> en : NEClient.INSTANCE.abilityKeys.entrySet()) {
+			if (en.getValue().isActiveAndMatches(keyCode)) {
+				hoveredAbility = en.getKey();
+				mouseClicked(0, 0, 0);
+			}
 		}
 		super.keyTyped(typedChar, keyCode);
 	}

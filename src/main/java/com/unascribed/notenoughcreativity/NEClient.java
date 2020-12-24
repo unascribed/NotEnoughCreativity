@@ -2,14 +2,22 @@ package com.unascribed.notenoughcreativity;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Locale;
+import java.util.Map;
 
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import com.unascribed.notenoughcreativity.client.GuiCreativePlus;
 import com.unascribed.notenoughcreativity.network.MessageSetEnabled;
+
+import com.google.common.collect.Maps;
+
+import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
 import com.unascribed.notenoughcreativity.network.MessagePickBlock;
 import com.unascribed.notenoughcreativity.network.MessagePickEntity;
+import com.unascribed.notenoughcreativity.network.MessageSetAbility;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -19,17 +27,21 @@ import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.multiplayer.PlayerControllerMP;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.RayTraceResult.Type;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.client.GuiIngameForge;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
+import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.ICrashCallable;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -46,8 +58,20 @@ public class NEClient {
 	
 	private static final ResourceLocation SWAP = new ResourceLocation("notenoughcreativity", "textures/gui/swap.png");
 	
+	public KeyBinding keyDeleteItem;
+	public Map<Ability, KeyBinding> abilityKeys;
+	
 	public void preInit() {
 		MinecraftForge.EVENT_BUS.register(this);
+		
+		keyDeleteItem = new KeyBinding("inventory.binSlot", KeyConflictContext.UNIVERSAL, Keyboard.KEY_DELETE, "Not Enough Creativity");
+		ClientRegistry.registerKeyBinding(keyDeleteItem);
+		abilityKeys = Maps.newEnumMap(Ability.class);
+		for (Ability a : Ability.VALUES) {
+			KeyBinding kb = new KeyBinding("key.notenoughcreativity.toggle_ability."+a.name().toLowerCase(Locale.ROOT), Keyboard.KEY_NONE, "Not Enough Creativity");
+			abilityKeys.put(a, kb);
+			ClientRegistry.registerKeyBinding(kb);
+		}
 		
 		FMLCommonHandler.instance().registerCrashCallable(new ICrashCallable() {
 			
@@ -131,6 +155,23 @@ public class NEClient {
 	@SubscribeEvent
 	public void onClientTick(ClientTickEvent e) {
 		if (e.phase == Phase.END) {
+			boolean cp = NotEnoughCreativity.isCreativePlus(Minecraft.getMinecraft().player);
+			if (keyDeleteItem.isPressed()) {
+				if (cp) {
+					new MessageDeleteSlot(82+Minecraft.getMinecraft().player.inventory.currentItem).sendToServer();
+				}
+			}
+			for (Map.Entry<Ability, KeyBinding> en : abilityKeys.entrySet()) {
+				if (en.getValue().isPressed()) {
+					if (cp) {
+						boolean newState = !en.getKey().isEnabled(Minecraft.getMinecraft().player);
+						new MessageSetAbility(en.getKey(), newState).sendToServer();
+						GuiCreativePlus.playAbilityToggleSound(en.getKey(), newState);
+						Minecraft.getMinecraft().player.sendStatusMessage(new TextComponentTranslation("msg.notenoughcreativity.ability_toggle."+newState,
+								new TextComponentTranslation("notenoughcreativity.ability."+en.getKey().name().toLowerCase(Locale.ROOT)+".name")), true);
+					}
+				}
+			}
 			if (Ability.INSTABREAK.isEnabled(Minecraft.getMinecraft().player)) {
 				try {
 					blockHitDelay.set(Minecraft.getMinecraft().playerController, 0);

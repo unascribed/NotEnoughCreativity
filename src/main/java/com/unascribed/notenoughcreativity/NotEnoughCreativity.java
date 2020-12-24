@@ -9,8 +9,11 @@ import com.unascribed.notenoughcreativity.network.MessagePickEntity;
 import com.unascribed.notenoughcreativity.network.MessageSetAbility;
 import com.unascribed.notenoughcreativity.network.MessageSetEnabled;
 
+import com.google.common.collect.ImmutableMultimap;
+
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
@@ -116,12 +119,24 @@ public class NotEnoughCreativity {
 		}
 	}
 	
+	private static final AttributeModifier REACH_MODIFIER = new AttributeModifier("Not Enough Creativity Long Reach ability", 8, 0);
+	private static final ImmutableMultimap<String, AttributeModifier> REACH_MODIFIER_MAP = ImmutableMultimap.of(EntityPlayer.REACH_DISTANCE.getName(), REACH_MODIFIER);
+	
 	@SubscribeEvent
 	public void onPlayerTick(PlayerTickEvent e) {
 		if (e.player.inventoryContainer instanceof ContainerCreativePlus) {
 			if (!e.player.capabilities.isCreativeMode) {
 				updateInventory(e.player);
 			} else {
+				if (Ability.LONGREACH.isEnabled(e.player)) {
+					if (!e.player.getAttributeMap().getAttributeInstance(EntityPlayer.REACH_DISTANCE).hasModifier(REACH_MODIFIER)) {
+						e.player.getAttributeMap().applyAttributeModifiers(REACH_MODIFIER_MAP);
+					}
+				} else {
+					if (e.player.getAttributeMap().getAttributeInstance(EntityPlayer.REACH_DISTANCE).hasModifier(REACH_MODIFIER)) {
+						e.player.getAttributeMap().removeAttributeModifiers(REACH_MODIFIER_MAP);
+					}
+				}
 				if (Ability.HEALTH.isEnabled(e.player)) {
 					e.player.capabilities.disableDamage = false;
 					e.player.getFoodStats().setFoodLevel(15);
