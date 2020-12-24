@@ -11,6 +11,9 @@ import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.netwo
 
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
+import net.minecraft.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.IInventory;
@@ -31,6 +34,7 @@ import net.minecraft.util.math.EntityRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.PlayerTickEvent;
@@ -83,7 +87,7 @@ public class NotEnoughCreativity {
 	}
 	
 	public static boolean isCreativePlus(PlayerEntity ep) {
-		return ep.abilities.isCreativeMode && ep.getPersistentData().getBoolean("NotEnoughCreativity");
+		return ep != null && ep.abilities.isCreativeMode && ep.getPersistentData().getBoolean("NotEnoughCreativity");
 	}
 
 	public void onLoggedIn(PlayerLoggedInEvent e) {
@@ -127,12 +131,24 @@ public class NotEnoughCreativity {
 		}
 	}
 	
+	private static final AttributeModifier REACH_MODIFIER = new AttributeModifier("Not Enough Creativity Long Reach ability", 8, Operation.ADDITION);
+	
 	public void onPlayerTick(PlayerTickEvent e) {
 		if (e.phase != Phase.START) return;
 		if (e.player.container instanceof ContainerCreativePlus) {
 			if (!e.player.abilities.isCreativeMode) {
 				updateInventory(e.player);
 			} else {
+				ModifiableAttributeInstance reach = e.player.getAttributeManager().createInstanceIfAbsent(ForgeMod.REACH_DISTANCE.get());
+				if (Ability.LONGREACH.isEnabled(e.player)) {
+					if (!reach.hasModifier(REACH_MODIFIER)) {
+						reach.applyNonPersistentModifier(REACH_MODIFIER);
+					}
+				} else {
+					if (reach.hasModifier(REACH_MODIFIER)) {
+						reach.removeModifier(REACH_MODIFIER);
+					}
+				}
 				if (Ability.HEALTH.isEnabled(e.player)) {
 					e.player.abilities.disableDamage = false;
 					e.player.getFoodStats().setFoodLevel(15);

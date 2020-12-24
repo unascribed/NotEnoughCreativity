@@ -2,15 +2,23 @@ package com.unascribed.notenoughcreativity;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Locale;
+import java.util.Map;
 
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.unascribed.notenoughcreativity.client.GuiCreativePlus;
 import com.unascribed.notenoughcreativity.network.MessageSetEnabled;
+
+import com.google.common.collect.Maps;
+
+import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
 import com.unascribed.notenoughcreativity.network.MessagePickBlock;
 import com.unascribed.notenoughcreativity.network.MessagePickEntity;
+import com.unascribed.notenoughcreativity.network.MessageSetAbility;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
@@ -19,6 +27,8 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.CreativeScreen;
 import net.minecraft.client.multiplayer.PlayerController;
 import net.minecraft.client.renderer.texture.AtlasTexture;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.client.util.InputMappings;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockRayTraceResult;
@@ -33,11 +43,13 @@ import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.client.gui.ForgeIngameGui;
+import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent.ClientTickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.TickEvent.RenderTickEvent;
 import net.minecraftforge.fml.CrashReportExtender;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 public class NEClient {
@@ -49,6 +61,9 @@ public class NEClient {
 	
 	private static final ResourceLocation SWAP = new ResourceLocation("notenoughcreativity", "textures/gui/swap.png");
 	
+	public KeyBinding keyDeleteItem;
+	public Map<Ability, KeyBinding> abilityKeys;
+
 	public void setupInst() {
 		MinecraftForge.EVENT_BUS.addListener(this::onClick);
 		MinecraftForge.EVENT_BUS.addListener(this::onRenderTick);
@@ -60,6 +75,16 @@ public class NEClient {
 		MinecraftForge.EVENT_BUS.addListener(this::onRenderTooltipPost);
 		MinecraftForge.EVENT_BUS.addListener(this::onRenderTooltipPre);
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onStitch);
+
+		keyDeleteItem = new KeyBinding("inventory.binSlot", KeyConflictContext.UNIVERSAL, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_DELETE, "Not Enough Creativity");
+		ClientRegistry.registerKeyBinding(keyDeleteItem);
+		abilityKeys = Maps.newEnumMap(Ability.class);
+		for (Ability a : Ability.VALUES) {
+			KeyBinding kb = new KeyBinding("key.notenoughcreativity.toggle_ability."+a.name().toLowerCase(Locale.ROOT), InputMappings.INPUT_INVALID.getKeyCode(), "Not Enough Creativity");
+			abilityKeys.put(a, kb);
+			ClientRegistry.registerKeyBinding(kb);
+		}
+
 		CrashReportExtender.registerCrashCallable("", () -> {
 			if (needRestoreGamma) {
 				needRestoreGamma = false;
@@ -140,6 +165,23 @@ public class NEClient {
 	
 	public void onClientTick(ClientTickEvent e) {
 		if (e.phase == Phase.END) {
+			boolean cp = NotEnoughCreativity.isCreativePlus(Minecraft.getInstance().player);
+			if (keyDeleteItem.isPressed()) {
+				if (cp) {
+					new MessageDeleteSlot(82+Minecraft.getInstance().player.inventory.currentItem).sendToServer();
+				}
+			}
+			for (Map.Entry<Ability, KeyBinding> en : abilityKeys.entrySet()) {
+				if (en.getValue().isPressed()) {
+					if (cp) {
+						boolean newState = !en.getKey().isEnabled(Minecraft.getInstance().player);
+						new MessageSetAbility(en.getKey(), newState).sendToServer();
+						GuiCreativePlus.playAbilityToggleSound(en.getKey(), newState);
+						Minecraft.getInstance().player.sendStatusMessage(new TranslationTextComponent("msg.notenoughcreativity.ability_toggle."+newState,
+								new TranslationTextComponent("notenoughcreativity.ability."+en.getKey().name().toLowerCase(Locale.ROOT)+".name")), true);
+					}
+				}
+			}
 			if (Ability.INSTABREAK.isEnabled(Minecraft.getInstance().player)) {
 				try {
 					blockHitDelay.set(Minecraft.getInstance().playerController, 0);

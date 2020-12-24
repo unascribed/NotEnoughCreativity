@@ -3,14 +3,15 @@ package com.unascribed.notenoughcreativity.client;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.unascribed.notenoughcreativity.Ability;
 import com.unascribed.notenoughcreativity.ContainerCreativePlus;
+import com.unascribed.notenoughcreativity.NEClient;
 import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
 import com.unascribed.notenoughcreativity.network.MessageSetAbility;
 
@@ -21,9 +22,9 @@ import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.IReorderingProcessor;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.ITextProperties;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -69,7 +70,7 @@ public class GuiCreativePlus extends ContainerScreen<ContainerCreativePlus> {
 		int y = getGuiTop()+4;
 		minecraft.getTextureManager().bindTexture(BG);
 		GlStateManager.disableLighting();
-		for (Ability a : Ability.values()) {
+		for (Ability a : Ability.VALUES_SORTED) {
 			fill(matrixStack, x, y, x+11, y+11, 0xFF000000);
 			if (a.isEnabled(minecraft.player)) {
 				GlStateManager.color4f(1, 1, 0, 1);
@@ -135,7 +136,7 @@ public class GuiCreativePlus extends ContainerScreen<ContainerCreativePlus> {
 		int y = getGuiTop()+4;
 		minecraft.getTextureManager().bindTexture(BG);
 		GlStateManager.disableLighting();
-		for (Ability a : Ability.values()) {
+		for (Ability a : Ability.VALUES_SORTED) {
 			if (a.isEnabled(minecraft.player) && Math.random() < 0.2) {
 				GuiParticle gp = new GuiParticle(x+2+(Math.random()*7), y+2+(Math.random()*7));
 				gp.color = 0xFFFFFF55;
@@ -190,23 +191,39 @@ public class GuiCreativePlus extends ContainerScreen<ContainerCreativePlus> {
 		if (hoveredAbility != null && mouseButton == 0) {
 			boolean newState = !hoveredAbility.isEnabled(minecraft.player);
 			new MessageSetAbility(hoveredAbility, newState).sendToServer();
-			if (newState) {
-				minecraft.getSoundHandler().play(SimpleSound.master(SoundEvents.ENTITY_ZOMBIE_VILLAGER_CONVERTED, 2));
-			} else {
-				minecraft.getSoundHandler().play(SimpleSound.master(SoundEvents.ENTITY_ZOMBIE_INFECT, 2));
-			}
+			playAbilityToggleSound(hoveredAbility, newState);
 			return true;
 		}
 		return super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
+
+	public static void playAbilityToggleSound(Ability a, boolean newState) {
+		float mod = 0;
+		if (a == Ability.NOCLIP) {
+			mod = 1.5f;
+		}
+		Minecraft mc = Minecraft.getInstance();
+		if (newState) {
+			mc.getSoundHandler().play(SimpleSound.master(a.getSound(), 1.1f*mod, 0.5f));
+		} else {
+			mc.getSoundHandler().play(SimpleSound.master(a.getSound(), 0.7f*mod, 0.5f));
+		}
+	}
 	
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-		if (keyCode == GLFW.GLFW_KEY_DELETE) {
+		if (NEClient.INSTANCE.keyDeleteItem.matchesKey(keyCode, scanCode)) {
 			if (getSlotUnderMouse() != null) {
 				new MessageDeleteSlot(getSlotUnderMouse().slotNumber).sendToServer();
 			}
 			return true;
+		}
+		for (Map.Entry<Ability, KeyBinding> en : NEClient.INSTANCE.abilityKeys.entrySet()) {
+			if (en.getValue().matchesKey(keyCode, scanCode)) {
+				hoveredAbility = en.getKey();
+				mouseClicked(0, 0, 0);
+				return true;
+			}
 		}
 		return super.keyPressed(keyCode, scanCode, modifiers);
 	}

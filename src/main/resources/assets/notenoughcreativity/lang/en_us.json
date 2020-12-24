@@ -3,6 +3,19 @@
 
     "notenoughcreativity.swap": "Switch to Creative+",
     "notenoughcreativity.exit": "Switch to Creative",
+    
+    "key.notenoughcreativity.toggle_ability.nopickup": "Toggle No Item Pickup",
+    "key.notenoughcreativity.toggle_ability.attack": "Toggle Instant Kill",
+    "key.notenoughcreativity.toggle_ability.health": "Toggle Allow Damage",
+    "key.notenoughcreativity.toggle_ability.instabreak": "Toggle No Break Delay",
+    "key.notenoughcreativity.toggle_ability.pickswap": "Toggle Pick-Swap",
+    "key.notenoughcreativity.toggle_ability.nightvision": "Toggle Night Vision",
+    "key.notenoughcreativity.toggle_ability.noclip": "Toggle No-Clip",
+    "key.notenoughcreativity.toggle_ability.darkmode": "Toggle Dark Mode",
+    "key.notenoughcreativity.toggle_ability.longreach": "Toggle Long Reach",
+
+    "msg.notenoughcreativity.ability_toggle.true": "%s is now §aENABLED",
+    "msg.notenoughcreativity.ability_toggle.false": "%s is now §cDISABLED",
 
     "notenoughcreativity.ability.nopickup.name": "No Item Pickup",
     "notenoughcreativity.ability.nopickup.desc": "Completely prevent item pickup, to avoid inventory clutter.",
@@ -19,5 +32,7 @@
     "notenoughcreativity.ability.noclip.name": "No-Clip",
     "notenoughcreativity.ability.noclip.desc": "Disable collision, like a Spectator.",
     "notenoughcreativity.ability.darkmode.name": "Dark Mode",
-    "notenoughcreativity.ability.darkmode.desc": "Make this GUI darker."
+    "notenoughcreativity.ability.darkmode.desc": "Make this GUI darker.",
+    "notenoughcreativity.ability.longreach.name": "Long Reach",
+    "notenoughcreativity.ability.longreach.desc": "Increase your reach from 4 blocks to 12 blocks."
 }
