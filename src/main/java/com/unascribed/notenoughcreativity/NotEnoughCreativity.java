@@ -127,6 +127,8 @@ public class NotEnoughCreativity {
 		if (e.getEntityLiving() instanceof PlayerEntity) {
 			if (Ability.NOCLIP.isEnabled((PlayerEntity)e.getEntityLiving())) {
 				e.getEntityLiving().noClip = true;
+				e.getEntityLiving().setOnGround(false);
+				((PlayerEntity)e.getEntityLiving()).abilities.isFlying = true;
 			}
 		}
 	}
