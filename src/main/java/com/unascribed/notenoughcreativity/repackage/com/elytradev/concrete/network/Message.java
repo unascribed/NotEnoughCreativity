@@ -40,6 +40,7 @@ import com.google.common.collect.Maps;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.play.ClientPlayNetHandler;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.play.client.CCustomPayloadPacket;
@@ -119,6 +120,19 @@ public abstract class Message {
 	
 	Side getSide() {
 		return side;
+	}
+	
+	/**
+	 * For use on the server-side. Sends this Message to every player that can
+	 * see the given entity.
+	 */
+	public final void sendToAllWatching(Entity e) {
+		if (side == Side.SERVER) wrongSide();
+		if (e.world instanceof ServerWorld) {
+			ServerWorld srv = (ServerWorld) e.world;
+			SCustomPayloadPlayPacket packet = toClientboundVanillaPacket();
+			srv.getChunkProvider().sendToAllTracking(e, packet);
+		}
 	}
 	
 	/**

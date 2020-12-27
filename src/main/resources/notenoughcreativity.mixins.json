@@ -5,9 +5,11 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "notenoughcreativity.refmap.json",
   "mixins": [
-  	"MixinEntity"
+    "MixinEntity"
   ],
   "client": [
+    "MixinGameRenderer",
+    "MixinActiveRenderInfo"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,8 +1,13 @@
 package com.unascribed.notenoughcreativity;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+
 import com.unascribed.notenoughcreativity.network.MessageAbilities;
 import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
 import com.unascribed.notenoughcreativity.network.MessageEnabled;
+import com.unascribed.notenoughcreativity.network.MessageOtherNoclipping;
 import com.unascribed.notenoughcreativity.network.MessagePickBlock;
 import com.unascribed.notenoughcreativity.network.MessagePickEntity;
 import com.unascribed.notenoughcreativity.network.MessageSetAbility;
@@ -72,6 +77,7 @@ public class NotEnoughCreativity {
 		network.register(MessageDeleteSlot.class);
 		network.register(MessagePickBlock.class);
 		network.register(MessagePickEntity.class);
+		network.register(MessageOtherNoclipping.class);
 		DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> NEClientSpringboard::setup);
 		MinecraftForge.EVENT_BUS.addListener(this::onLoggedIn);
 		MinecraftForge.EVENT_BUS.addListener(this::onDeath);
@@ -122,14 +128,30 @@ public class NotEnoughCreativity {
 		}
 	}
 	
+	private static final Set<PlayerEntity> noclippers = Collections.newSetFromMap(new WeakHashMap<>());
+	
 	// LivingUpdate runs slightly later on players, after noClip is set to isSpectator
 	public void onLivingUpdate(LivingUpdateEvent e) {
 		if (e.getEntityLiving() instanceof PlayerEntity) {
-			if (Ability.NOCLIP.isEnabled((PlayerEntity)e.getEntityLiving())) {
+			PlayerEntity p = (PlayerEntity)e.getEntityLiving();
+			if (Ability.NOCLIP.isEnabled(p)) {
 				e.getEntityLiving().noClip = true;
 				e.getEntityLiving().setOnGround(false);
-				((PlayerEntity)e.getEntityLiving()).abilities.isFlying = true;
+				p.abilities.isFlying = true;
+				if (noclippers.add(p)) {
+					new MessageOtherNoclipping(p.getEntityId(), true).sendToAllWatching(p);
+				}
+			} else {
+				if (noclippers.remove(p)) {
+					new MessageOtherNoclipping(p.getEntityId(), false).sendToAllWatching(p);
+				}
 			}
+		}
+	}
+	
+	public void onEntityTrack(PlayerEvent.StartTracking e) {
+		if (e.getTarget() instanceof PlayerEntity) {
+			new MessageOtherNoclipping(e.getTarget().getEntityId(), Ability.NOCLIP.isEnabled((PlayerEntity)e.getTarget())).sendTo(e.getPlayer());
 		}
 	}
 	

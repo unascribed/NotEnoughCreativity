@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL11;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.unascribed.notenoughcreativity.client.GuiCreativePlus;
+import com.unascribed.notenoughcreativity.client.Stipple;
 import com.unascribed.notenoughcreativity.network.MessageSetEnabled;
 
 import com.google.common.collect.Maps;
@@ -26,6 +27,7 @@ import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.CreativeScreen;
 import net.minecraft.client.multiplayer.PlayerController;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.client.util.InputMappings;
@@ -39,6 +41,7 @@ import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.InputEvent.ClickInputEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
@@ -74,6 +77,8 @@ public class NEClient {
 		MinecraftForge.EVENT_BUS.addListener(this::onPostRenderGui);
 		MinecraftForge.EVENT_BUS.addListener(this::onRenderTooltipPost);
 		MinecraftForge.EVENT_BUS.addListener(this::onRenderTooltipPre);
+		MinecraftForge.EVENT_BUS.addListener(this::onRenderPlayerPre);
+		MinecraftForge.EVENT_BUS.addListener(this::onRenderPlayerPost);
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onStitch);
 
 		keyDeleteItem = new KeyBinding("inventory.binSlot", KeyConflictContext.UNIVERSAL, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_DELETE, "Not Enough Creativity");
@@ -209,6 +214,23 @@ public class NEClient {
 	public void onRenderTooltipPost(RenderTooltipEvent.PostText e) {
 		GlStateManager.popMatrix();
 		GlStateManager.depthFunc(GL11.GL_LEQUAL);
+	}
+	
+	public void onRenderPlayerPre(RenderPlayerEvent.Pre e) {
+		if (e.getBuffers() instanceof IRenderTypeBuffer.Impl && e.getPlayer().getPersistentData().getBoolean("NotEnoughCreativityNoclipping") || Ability.NOCLIP.isEnabled(e.getPlayer())) {
+			Stipple.grey30();
+			Stipple.enable();
+		}
+	}
+	
+	public void onRenderPlayerPost(RenderPlayerEvent.Post e) {
+		if (e.getBuffers() instanceof IRenderTypeBuffer.Impl) {
+			IRenderTypeBuffer.Impl impl = (IRenderTypeBuffer.Impl)e.getBuffers();
+			if (e.getPlayer().getPersistentData().getBoolean("NotEnoughCreativityNoclipping") || Ability.NOCLIP.isEnabled(e.getPlayer())) {
+				impl.finish();
+				Stipple.disable();
+			}
+		}
 	}
 	
 	public void onDisplayGui(GuiOpenEvent e) {
