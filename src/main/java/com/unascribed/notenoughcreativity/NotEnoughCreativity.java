@@ -136,10 +136,13 @@ public class NotEnoughCreativity {
 	public void onPlayerTick(PlayerTickEvent e) {
 		if (e.phase != Phase.START) return;
 		if (e.player.container instanceof ContainerCreativePlus) {
+			ModifiableAttributeInstance reach = e.player.getAttributeManager().createInstanceIfAbsent(ForgeMod.REACH_DISTANCE.get());
 			if (!e.player.abilities.isCreativeMode) {
+				if (reach.hasModifier(REACH_MODIFIER)) {
+					reach.removeModifier(REACH_MODIFIER);
+				}
 				updateInventory(e.player);
 			} else {
-				ModifiableAttributeInstance reach = e.player.getAttributeManager().createInstanceIfAbsent(ForgeMod.REACH_DISTANCE.get());
 				if (Ability.LONGREACH.isEnabled(e.player)) {
 					if (!reach.hasModifier(REACH_MODIFIER)) {
 						reach.applyNonPersistentModifier(REACH_MODIFIER);
