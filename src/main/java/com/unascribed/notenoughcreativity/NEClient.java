@@ -10,6 +10,7 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import com.unascribed.notenoughcreativity.client.GuiCreativePlus;
+import com.unascribed.notenoughcreativity.client.Stipple;
 import com.unascribed.notenoughcreativity.network.MessageSetEnabled;
 
 import com.google.common.collect.Maps;
@@ -39,6 +40,7 @@ import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
+import net.minecraftforge.client.event.RenderPlayerEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -204,6 +206,21 @@ public class NEClient {
 	}
 	
 	@SubscribeEvent
+	public void onRenderPlayerPre(RenderPlayerEvent.Pre e) {
+		if (e.getEntityPlayer().getEntityData().getBoolean("NotEnoughCreativityNoclipping") || Ability.NOCLIP.isEnabled(e.getEntityPlayer())) {
+			Stipple.grey30();
+			Stipple.enable();
+		}
+	}
+	
+	@SubscribeEvent
+	public void onRenderPlayerPost(RenderPlayerEvent.Post e) {
+		if (e.getEntityPlayer().getEntityData().getBoolean("NotEnoughCreativityNoclipping") || Ability.NOCLIP.isEnabled(e.getEntityPlayer())) {
+			Stipple.disable();
+		}
+	}
+	
+	@SubscribeEvent
 	public void onDisplayGui(GuiOpenEvent e) {
 		if (e.getGui() instanceof GuiContainerCreative) {
 			EntityPlayerSP p = Minecraft.getMinecraft().player;
@@ -259,6 +276,17 @@ public class NEClient {
 				}
 			}
 		}
+	}
+	
+	public static void preRenderItemInFirstPerson() {
+		if (Ability.NOCLIP.isEnabled(Minecraft.getMinecraft().player)) {
+			Stipple.grey30();
+			Stipple.enable();
+		}
+	}
+
+	public static void postRenderItemInFirstPerson() {
+		Stipple.disable();
 	}
 	
 	public static void middleClickMouse() {

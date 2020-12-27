@@ -1,9 +1,14 @@
 package com.unascribed.notenoughcreativity;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
+
 import com.elytradev.concrete.network.NetworkContext;
 import com.unascribed.notenoughcreativity.network.MessageAbilities;
 import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
 import com.unascribed.notenoughcreativity.network.MessageEnabled;
+import com.unascribed.notenoughcreativity.network.MessageOtherNoclipping;
 import com.unascribed.notenoughcreativity.network.MessagePickBlock;
 import com.unascribed.notenoughcreativity.network.MessagePickEntity;
 import com.unascribed.notenoughcreativity.network.MessageSetAbility;
@@ -46,6 +51,7 @@ import net.minecraftforge.fml.common.eventhandler.Event.Result;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerChangedDimensionEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent.Phase;
 import net.minecraftforge.fml.common.gameevent.TickEvent.PlayerTickEvent;
 
 @Mod(modid="notenoughcreativity", name="Not Enough Creativity", version="@VERSION@")
@@ -63,6 +69,7 @@ public class NotEnoughCreativity {
 		network.register(MessageDeleteSlot.class);
 		network.register(MessagePickBlock.class);
 		network.register(MessagePickEntity.class);
+		network.register(MessageOtherNoclipping.class);
 		if (FMLCommonHandler.instance().getSide().isClient()) {
 			NEClient.INSTANCE.preInit();
 		}
@@ -108,24 +115,46 @@ public class NotEnoughCreativity {
 			e.setCanceled(true);
 		}
 	}
-
+	
+	private static final Set<EntityPlayer> noclippers = Collections.newSetFromMap(new WeakHashMap<>());
+	
 	// LivingUpdate runs slightly later on players, after noClip is set to isSpectator
 	@SubscribeEvent
 	public void onLivingUpdate(LivingUpdateEvent e) {
 		if (e.getEntityLiving() instanceof EntityPlayer) {
-			if (Ability.NOCLIP.isEnabled((EntityPlayer)e.getEntityLiving())) {
+			EntityPlayer p = (EntityPlayer)e.getEntityLiving();
+			if (Ability.NOCLIP.isEnabled(p)) {
 				e.getEntityLiving().noClip = true;
+				e.getEntityLiving().onGround = false;
+				p.capabilities.isFlying = true;
+				if (noclippers.add(p)) {
+					new MessageOtherNoclipping(p.getEntityId(), true).sendToAllWatching(p);
+				}
+			} else {
+				if (noclippers.remove(p)) {
+					new MessageOtherNoclipping(p.getEntityId(), false).sendToAllWatching(p);
+				}
 			}
 		}
 	}
 	
+	public void onEntityTrack(PlayerEvent.StartTracking e) {
+		if (e.getTarget() instanceof EntityPlayer) {
+			new MessageOtherNoclipping(e.getTarget().getEntityId(), Ability.NOCLIP.isEnabled((EntityPlayer)e.getTarget())).sendTo(e.getEntityPlayer());
+		}
+	}
+
 	private static final AttributeModifier REACH_MODIFIER = new AttributeModifier("Not Enough Creativity Long Reach ability", 8, 0);
 	private static final ImmutableMultimap<String, AttributeModifier> REACH_MODIFIER_MAP = ImmutableMultimap.of(EntityPlayer.REACH_DISTANCE.getName(), REACH_MODIFIER);
 	
 	@SubscribeEvent
 	public void onPlayerTick(PlayerTickEvent e) {
+		if (e.phase != Phase.START) return;
 		if (e.player.inventoryContainer instanceof ContainerCreativePlus) {
 			if (!e.player.capabilities.isCreativeMode) {
+				if (e.player.getAttributeMap().getAttributeInstance(EntityPlayer.REACH_DISTANCE).hasModifier(REACH_MODIFIER)) {
+					e.player.getAttributeMap().removeAttributeModifiers(REACH_MODIFIER_MAP);
+				}
 				updateInventory(e.player);
 			} else {
 				if (Ability.LONGREACH.isEnabled(e.player)) {

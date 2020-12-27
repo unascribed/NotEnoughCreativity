@@ -11,7 +11,7 @@ import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin.*;
 public class NECLoadingPlugin extends MiniCoremod {
 
 	public NECLoadingPlugin() {
-		super(MinecraftTransformer.class);
+		super(MinecraftTransformer.class, ItemRendererTransformer.class);
 	}
 
 }
