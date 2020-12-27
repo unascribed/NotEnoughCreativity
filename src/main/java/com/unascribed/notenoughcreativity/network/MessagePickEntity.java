@@ -9,8 +9,8 @@ import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.netwo
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.EntityRayTraceResult;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.math.Vec3d;
 
 @ReceivedOn(Side.SERVER)
 public class MessagePickEntity extends Message {
@@ -43,9 +43,9 @@ public class MessagePickEntity extends Message {
 	@Override
 	protected void handle(PlayerEntity player) {
 		if (!NotEnoughCreativity.isCreativePlus(player)) return;
-		Entity e = player.world.getEntityByID(entityId);
+		Entity e = player.world.getEntityById(entityId);
 		if (e == null) return;
-		NotEnoughCreativity.pickBlock(player, new EntityRayTraceResult(e, new Vector3d(hitX, hitY, hitZ)), exact);
+		NotEnoughCreativity.pickBlock(player, new EntityHitResult(e, new Vec3d(hitX, hitY, hitZ)), exact);
 	}
 	
 }

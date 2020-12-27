@@ -3,13 +3,32 @@
   "minVersion": "0.8",
   "package": "com.unascribed.notenoughcreativity.mixin",
   "compatibilityLevel": "JAVA_8",
-  "refmap": "notenoughcreativity.refmap.json",
+  "refmap": "notenoughcreativity-refmap.json",
   "mixins": [
-    "MixinEntity"
+    "AccessorCustomPayload",
+    "AccessorPlayerScreenHandler",
+    "InvokerDamageSource",
+    "MixinEntity",
+    "MixinItemEntity",
+    "MixinLivingEntity",
+    "MixinPlayerEntity",
+    "MixinServerPlayerEntity",
+    "MixinServerPlayNetworkHandler",
+    "MixinServerPlayerInteractionManager"
   ],
   "client": [
-    "MixinGameRenderer",
-    "MixinActiveRenderInfo"
+    "AccessorClientPlayerInteractionManager",
+    "AccessorFocusedSlot",
+    "MixinCamera",
+    "MixinClientPlayerInteractionManager",
+    "MixinClientPlayNetworkHandler",
+    "MixinCreativeInventoryScreen",
+    "MixinHeldItemRenderer",
+    "MixinHandledScreen",
+    "MixinInGameHud",
+    "MixinMinecraftClient",
+    "MixinPlayerEntityRenderer",
+    "MixinSpriteAtlasTexture"
   ],
   "injectors": {
     "defaultRequire": 1

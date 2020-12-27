@@ -31,7 +31,7 @@ package com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.netw
 
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.exception.BadMessageException;
 
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.PacketByteBuf;
 
 public class MarshallableMarshaller<T extends Marshallable> implements Marshaller<T> {
 	private final Class<T> clazz;
@@ -40,7 +40,7 @@ public class MarshallableMarshaller<T extends Marshallable> implements Marshalle
 	}
 	
 	@Override
-	public T unmarshal(PacketBuffer in) {
+	public T unmarshal(PacketByteBuf in) {
 		T t;
 		try {
 			t = clazz.newInstance();
@@ -52,7 +52,7 @@ public class MarshallableMarshaller<T extends Marshallable> implements Marshalle
 	}
 
 	@Override
-	public void marshal(PacketBuffer out, T t) {
+	public void marshal(PacketByteBuf out, T t) {
 		t.writeToNetwork(out);
 	}
 

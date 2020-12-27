@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "notenoughcreativity",
+  "version": "${version}",
+
+  "name": "Not Enough Creativity",
+  "description": "Something like NEI's forgotten Creative+, but for newer versions, with some bonuses.",
+  "authors": [
+    "unascribed"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/not-enough-creativity",
+    "source": "https://github.com/unascribed/NotEnoughCreativity",
+    "issues": "https://github.com/unascribed/NotEnoughCreativity/issues"
+  },
+
+  "license": "MIT",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.unascribed.notenoughcreativity.NotEnoughCreativity"],
+    "rei_plugins": ["com.unascribed.notenoughcreativity.REIPlugin"]
+  },
+  "mixins": ["notenoughcreativity.mixins.json"],
+  "accessWidener" : "notenoughcreativity.accesswidener",
+
+  "depends": {
+    "fabricloader": ">=0.7.4",
+    "minecraft": ">=1.16"
+  }
+}

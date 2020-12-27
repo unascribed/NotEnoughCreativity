@@ -1,0 +1,3 @@
+accessWidener v1 named
+
+mutable field net/minecraft/entity/player/PlayerEntity playerScreenHandler Lnet/minecraft/screen/PlayerScreenHandler;

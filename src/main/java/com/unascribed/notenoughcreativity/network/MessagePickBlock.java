@@ -8,10 +8,10 @@ import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.netwo
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.type.ReceivedOn;
 
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Direction;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 
 @ReceivedOn(Side.SERVER)
 public class MessagePickBlock extends Message {
@@ -53,7 +53,7 @@ public class MessagePickBlock extends Message {
 	@Override
 	protected void handle(PlayerEntity player) {
 		if (!NotEnoughCreativity.isCreativePlus(player)) return;
-		NotEnoughCreativity.pickBlock(player, new BlockRayTraceResult(new Vector3d(hitX, hitY, hitZ), sideHit, new BlockPos(x, y, z), false), exact);
+		NotEnoughCreativity.pickBlock(player, new BlockHitResult(new Vec3d(hitX, hitY, hitZ), sideHit, new BlockPos(x, y, z), false), exact);
 	}
 	
 }

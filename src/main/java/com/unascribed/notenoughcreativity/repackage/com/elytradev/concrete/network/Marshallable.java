@@ -29,9 +29,9 @@
 
 package com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network;
 
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.PacketByteBuf;
 
 public interface Marshallable {
-	void writeToNetwork(PacketBuffer buf);
-	void readFromNetwork(PacketBuffer buf);
+	void writeToNetwork(PacketByteBuf buf);
+	void readFromNetwork(PacketByteBuf buf);
 }

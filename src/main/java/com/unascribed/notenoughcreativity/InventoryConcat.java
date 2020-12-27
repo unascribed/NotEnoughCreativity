@@ -1,18 +1,14 @@
 package com.unascribed.notenoughcreativity;
 
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.ITextComponent;
 
-public class InventoryConcat implements IInventory {
-	private final String name;
-	private final IInventory first;
-	private final IInventory second;
+public class InventoryConcat implements Inventory {
+	private final Inventory first;
+	private final Inventory second;
 
-	public InventoryConcat(String name, IInventory first, IInventory second) {
-		this.name = name;
-
+	public InventoryConcat(Inventory first, Inventory second) {
 		if (first == null) {
 			first = second;
 		}
@@ -26,8 +22,8 @@ public class InventoryConcat implements IInventory {
 	}
 
 	@Override
-	public int getSizeInventory() {
-		return first.getSizeInventory() + second.getSizeInventory();
+	public int size() {
+		return first.size() + second.size();
 	}
 
 	@Override
@@ -36,38 +32,38 @@ public class InventoryConcat implements IInventory {
 	}
 
 	@Override
-	public ItemStack getStackInSlot(int index) {
-		return index >= first.getSizeInventory()
-				? second.getStackInSlot(index - first.getSizeInventory())
-				: first.getStackInSlot(index);
+	public ItemStack getStack(int index) {
+		return index >= first.size()
+				? second.getStack(index - first.size())
+				: first.getStack(index);
 	}
 
 	@Override
-	public ItemStack decrStackSize(int index, int count) {
-		return index >= first.getSizeInventory()
-				? second.decrStackSize(index - first.getSizeInventory(), count)
-				: first.decrStackSize(index, count);
+	public ItemStack removeStack(int index, int count) {
+		return index >= first.size()
+				? second.removeStack(index - first.size(), count)
+				: first.removeStack(index, count);
 	}
 
 	@Override
-	public ItemStack removeStackFromSlot(int index) {
-		return index >= first.getSizeInventory()
-				? second.removeStackFromSlot(index - first.getSizeInventory())
-				: first.removeStackFromSlot(index);
+	public ItemStack removeStack(int index) {
+		return index >= first.size()
+				? second.removeStack(index - first.size())
+				: first.removeStack(index);
 	}
 
 	@Override
-	public void setInventorySlotContents(int index, ItemStack stack) {
-		if (index >= first.getSizeInventory()) {
-			second.setInventorySlotContents(index - first.getSizeInventory(), stack);
+	public void setStack(int index, ItemStack stack) {
+		if (index >= first.size()) {
+			second.setStack(index - first.size(), stack);
 		} else {
-			first.setInventorySlotContents(index, stack);
+			first.setStack(index, stack);
 		}
 	}
 
 	@Override
-	public int getInventoryStackLimit() {
-		return first.getInventoryStackLimit();
+	public int getMaxCountPerStack() {
+		return first.getMaxCountPerStack();
 	}
 
 	@Override
@@ -77,26 +73,28 @@ public class InventoryConcat implements IInventory {
 	}
 
 	@Override
-	public boolean isUsableByPlayer(PlayerEntity player) {
-		return first.isUsableByPlayer(player)
-				&& second.isUsableByPlayer(player);
+	public boolean canPlayerUse(PlayerEntity player) {
+		return first.canPlayerUse(player)
+				&& second.canPlayerUse(player);
+	}
+	
+	@Override
+	public void onOpen(PlayerEntity player) {
+		first.onOpen(player);
+		second.onOpen(player);
 	}
 
 	@Override
-	public void openInventory(PlayerEntity player) {
-		first.openInventory(player);
-		second.openInventory(player);
+	public void onClose(PlayerEntity player) {
+		first.onClose(player);
+		second.onClose(player);
 	}
 
 	@Override
-	public void closeInventory(PlayerEntity player) {
-		first.closeInventory(player);
-		second.closeInventory(player);
-	}
-
-	@Override
-	public boolean isItemValidForSlot(int index, ItemStack stack) {
-		return true;
+	public boolean isValid(int index, ItemStack stack) {
+		return index >= first.size()
+				? second.isValid(index - first.size(), stack)
+				: first.isValid(index, stack);
 	}
 
 	@Override

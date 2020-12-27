@@ -39,7 +39,7 @@ import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.refle
 
 import com.google.common.base.Throwables;
 
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.PacketByteBuf;
 
 class WireField<T> {
 	private final Field f;
@@ -87,7 +87,7 @@ class WireField<T> {
 	}
 	
 	
-	public void marshal(Object owner, PacketBuffer out) {
+	public void marshal(Object owner, PacketByteBuf out) {
 		T value = accessor.get(owner);
 		if (value == null) {
 			if (isOptional()) return;
@@ -95,7 +95,7 @@ class WireField<T> {
 		}
 		marshaller.marshal(out, value);
 	}
-	public void unmarshal(Object owner, PacketBuffer in) {
+	public void unmarshal(Object owner, PacketByteBuf in) {
 		accessor.set(owner, marshaller.unmarshal(in));
 	}
 	

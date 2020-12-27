@@ -44,8 +44,8 @@ import com.google.common.primitives.Ints;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.math.BlockPos;
 
 /**
@@ -60,13 +60,13 @@ public final class DefaultMarshallers {
 	 * <p>
 	 * Aliases: u8, uint8, ubyte
 	 */
-	public static final Marshaller<? extends Number> UINT8 = weld(Number::intValue, PacketBuffer::writeByte, PacketBuffer::readUnsignedByte);
+	public static final Marshaller<? extends Number> UINT8 = weld(Number::intValue, PacketByteBuf::writeByte, PacketByteBuf::readUnsignedByte);
 	/**
 	 * Signed 8-bit (1 byte) integer.
 	 * <p>
 	 * Aliases: i8, int8, byte
 	 */
-	public static final Marshaller<? extends Number> INT8 = weld(Number::intValue, PacketBuffer::writeByte, PacketBuffer::readByte);
+	public static final Marshaller<? extends Number> INT8 = weld(Number::intValue, PacketByteBuf::writeByte, PacketByteBuf::readByte);
 	
 	
 	/**
@@ -74,7 +74,7 @@ public final class DefaultMarshallers {
 	 * <p>
 	 * Aliases: u16, uint16, ushort
 	 */
-	public static final Marshaller<? extends Number> UINT16 = weld(Number::intValue, PacketBuffer::writeShort, PacketBuffer::readUnsignedShort);
+	public static final Marshaller<? extends Number> UINT16 = weld(Number::intValue, PacketByteBuf::writeShort, PacketByteBuf::readUnsignedShort);
 	/**
 	 * 16-bit (2 byte) character.
 	 * <p>
@@ -86,7 +86,7 @@ public final class DefaultMarshallers {
 	 * <p>
 	 * Aliases: i16, int16, short
 	 */
-	public static final Marshaller<? extends Number> INT16 = weld(Number::intValue, PacketBuffer::writeShort, PacketBuffer::readShort);
+	public static final Marshaller<? extends Number> INT16 = weld(Number::intValue, PacketByteBuf::writeShort, PacketByteBuf::readShort);
 	
 	
 	/**
@@ -94,13 +94,13 @@ public final class DefaultMarshallers {
 	 * <p>
 	 * Aliases: u24, uint24, umedium
 	 */
-	public static final Marshaller<? extends Number> UINT24 = weld(Number::intValue, PacketBuffer::writeMedium, PacketBuffer::readUnsignedMedium);
+	public static final Marshaller<? extends Number> UINT24 = weld(Number::intValue, PacketByteBuf::writeMedium, PacketByteBuf::readUnsignedMedium);
 	/**
 	 * Signed 24-bit (3 byte) integer.
 	 * <p>
 	 * Aliases: i24, int24, medium
 	 */
-	public static final Marshaller<? extends Number> INT24 = weld(Number::intValue, PacketBuffer::writeMedium, PacketBuffer::readMedium);
+	public static final Marshaller<? extends Number> INT24 = weld(Number::intValue, PacketByteBuf::writeMedium, PacketByteBuf::readMedium);
 	
 	
 	/**
@@ -108,13 +108,13 @@ public final class DefaultMarshallers {
 	 * <p>
 	 * Aliases: u32, uint32, uint, uinteger
 	 */
-	public static final Marshaller<? extends Number> UINT32 = weld(Number::intValue, PacketBuffer::writeInt, PacketBuffer::readUnsignedInt);
+	public static final Marshaller<? extends Number> UINT32 = weld(Number::intValue, PacketByteBuf::writeInt, PacketByteBuf::readUnsignedInt);
 	/**
 	 * Signed 32-bit (4 byte) integer.
 	 * <p>
 	 * Aliases: i32, int32, int, integer
 	 */
-	public static final Marshaller<? extends Number> INT32 = weld(Number::intValue, PacketBuffer::writeInt, PacketBuffer::readInt);
+	public static final Marshaller<? extends Number> INT32 = weld(Number::intValue, PacketByteBuf::writeInt, PacketByteBuf::readInt);
 	
 	
 	/**
@@ -122,7 +122,7 @@ public final class DefaultMarshallers {
 	 * <p>
 	 * Aliases: i64, int64, long
 	 */
-	public static final Marshaller<? extends Number> INT64 = weld(Number::longValue, PacketBuffer::writeLong, PacketBuffer::readLong);
+	public static final Marshaller<? extends Number> INT64 = weld(Number::longValue, PacketByteBuf::writeLong, PacketByteBuf::readLong);
 	
 	
 	/**
@@ -130,7 +130,7 @@ public final class DefaultMarshallers {
 	 * <p>
 	 * Aliases: f32, float
 	 */
-	public static final Marshaller<? extends Number> FLOAT = weld(Number::floatValue, PacketBuffer::writeFloat, PacketBuffer::readFloat);
+	public static final Marshaller<? extends Number> FLOAT = weld(Number::floatValue, PacketByteBuf::writeFloat, PacketByteBuf::readFloat);
 	
 	
 	/**
@@ -138,7 +138,7 @@ public final class DefaultMarshallers {
 	 * <p>
 	 * Aliases: f64, double
 	 */
-	public static final Marshaller<? extends Number> DOUBLE = weld(Number::doubleValue, PacketBuffer::writeDouble, PacketBuffer::readDouble);
+	public static final Marshaller<? extends Number> DOUBLE = weld(Number::doubleValue, PacketByteBuf::writeDouble, PacketByteBuf::readDouble);
 	
 	
 	/**
@@ -152,7 +152,7 @@ public final class DefaultMarshallers {
 	/**
 	 * Compound NBT tag.
 	 */
-	public static final Marshaller<CompoundNBT> NBT = weld(PacketBuffer::writeCompoundTag, PacketBuffer::readCompoundTag);
+	public static final Marshaller<CompoundTag> NBT = weld(PacketByteBuf::writeCompoundTag, PacketByteBuf::readCompoundTag);
 	
 	
 	/**
@@ -164,12 +164,12 @@ public final class DefaultMarshallers {
 	/**
 	 * UTF-8 varint-length-prefixed string.
 	 */
-	public static final Marshaller<String> STRING = weld(PacketBuffer::writeString, pb -> pb.readString(32767));
+	public static final Marshaller<String> STRING = weld(PacketByteBuf::writeString, pb -> pb.readString(32767));
 	
 	/**
 	 * Packed ItemStack.
 	 */
-	public static final Marshaller<ItemStack> ITEMSTACK = weld(PacketBuffer::writeItemStack, PacketBuffer::readItemStack);
+	public static final Marshaller<ItemStack> ITEMSTACK = weld(PacketByteBuf::writeItemStack, PacketByteBuf::readItemStack);
 	
 	
 	/**
@@ -228,7 +228,7 @@ public final class DefaultMarshallers {
 		}
 		
 		@Override
-		public List<T> unmarshal(PacketBuffer in) {
+		public List<T> unmarshal(PacketByteBuf in) {
 			int size = in.readVarInt();
 			List<T> li = Lists.newArrayListWithCapacity(size);
 			for (int i = 0; i < size; i++) {
@@ -238,7 +238,7 @@ public final class DefaultMarshallers {
 		}
 
 		@Override
-		public void marshal(PacketBuffer out, List<T> li) {
+		public void marshal(PacketByteBuf out, List<T> li) {
 			if (li == null) {
 				out.writeVarInt(0);
 			} else {
@@ -254,13 +254,13 @@ public final class DefaultMarshallers {
 	private static class BlockPosMarshaller implements Marshaller<BlockPos> {
 
 		@Override
-		public BlockPos unmarshal(PacketBuffer in) {
+		public BlockPos unmarshal(PacketByteBuf in) {
 			return BlockPos.fromLong(in.readLong());
 		}
 
 		@Override
-		public void marshal(PacketBuffer out, BlockPos t) {
-			out.writeLong(t.toLong());
+		public void marshal(PacketByteBuf out, BlockPos t) {
+			out.writeLong(t.asLong());
 		}
 
 	}
@@ -268,12 +268,12 @@ public final class DefaultMarshallers {
 	private static class VarIntMarshaller implements Marshaller<Number> {
 
 		@Override
-		public Number unmarshal(PacketBuffer in) {
+		public Number unmarshal(PacketByteBuf in) {
 			return in.readVarInt();
 		}
 
 		@Override
-		public void marshal(PacketBuffer out, Number t) {
+		public void marshal(PacketByteBuf out, Number t) {
 			out.writeVarInt(t.intValue());
 		}
 
@@ -289,7 +289,7 @@ public final class DefaultMarshallers {
 		}
 		
 		@Override
-		public T unmarshal(PacketBuffer in) {
+		public T unmarshal(PacketByteBuf in) {
 			int ordinal;
 			if (constants.length < 256) {
 				ordinal = in.readUnsignedByte();
@@ -304,7 +304,7 @@ public final class DefaultMarshallers {
 		}
 
 		@Override
-		public void marshal(PacketBuffer out, T t) {
+		public void marshal(PacketByteBuf out, T t) {
 			if (constants.length < 256) {
 				out.writeByte(t.ordinal());
 			} else if (constants.length < 65536) {
@@ -321,14 +321,14 @@ public final class DefaultMarshallers {
 	private static class ByteBufMarshaller implements Marshaller<ByteBuf> {
 		
 		@Override
-		public ByteBuf unmarshal(PacketBuffer in) {
+		public ByteBuf unmarshal(PacketByteBuf in) {
 			int length = in.readVarInt();
 			
 			return in.readBytes(length);
 		}
 		
 		@Override
-		public void marshal(PacketBuffer out, ByteBuf t) {
+		public void marshal(PacketByteBuf out, ByteBuf t) {
 			if (t != null) {
 				out.writeVarInt(t.readableBytes());
 				out.writeBytes(t.readBytes(t.readableBytes()));
@@ -342,12 +342,12 @@ public final class DefaultMarshallers {
 	private static class CharacterMarshaller implements Marshaller<Character> {
 		
 		@Override
-		public Character unmarshal(PacketBuffer in) {
+		public Character unmarshal(PacketByteBuf in) {
 			return in.readChar();
 		}
 		
 		@Override
-		public void marshal(PacketBuffer out, Character t) {
+		public void marshal(PacketByteBuf out, Character t) {
 			out.writeChar(t);
 		}
 		
@@ -357,11 +357,11 @@ public final class DefaultMarshallers {
 	private static <F, R extends Number> Marshaller<? extends Number> weld(Function<Number, F> converter, Serializer<F> serializer, Deserializer<R> deserializer) {
 		return new Marshaller<Number>() {
 			@Override
-			public void marshal(PacketBuffer out, Number number) {
+			public void marshal(PacketByteBuf out, Number number) {
 				serializer.serialize(out, converter.apply(number));
 			}
 			@Override
-			public R unmarshal(PacketBuffer in) {
+			public R unmarshal(PacketByteBuf in) {
 				return deserializer.deserialize(in);
 			}
 		};
@@ -370,21 +370,21 @@ public final class DefaultMarshallers {
 	private static <T> Marshaller<T> weld(Serializer<T> serializer, Deserializer<T> deserializer) {
 		return new Marshaller<T>() {
 			@Override
-			public void marshal(PacketBuffer out, T t) {
+			public void marshal(PacketByteBuf out, T t) {
 				serializer.serialize(out, t);
 			}
 			@Override
-			public T unmarshal(PacketBuffer in) {
+			public T unmarshal(PacketByteBuf in) {
 				return deserializer.deserialize(in);
 			}
 		};
 	}
 	
 	private interface Serializer<T> {
-		void serialize(PacketBuffer out, T t);
+		void serialize(PacketByteBuf out, T t);
 	}
 	private interface Deserializer<T> {
-		T deserialize(PacketBuffer in);
+		T deserialize(PacketByteBuf in);
 	}
 	
 	public static <T> Marshaller<T> getByName(String name) {
@@ -439,7 +439,7 @@ public final class DefaultMarshallers {
 			return (Marshaller<T>) STRING;
 		} else if (BlockPos.class.isAssignableFrom(type)) {
 			return (Marshaller<T>) BLOCKPOS;
-		} else if (CompoundNBT.class.isAssignableFrom(type)) {
+		} else if (CompoundTag.class.isAssignableFrom(type)) {
 			return (Marshaller<T>) NBT;
 		} else if (type.isEnum()) {
 			return new EnumMarshaller(type);

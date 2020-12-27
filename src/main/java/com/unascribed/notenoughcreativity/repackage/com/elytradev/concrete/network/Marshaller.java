@@ -29,13 +29,13 @@
 
 package com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network;
 
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.PacketByteBuf;
 
 /**
  * Handles the serializing and deserializing of a type. Should define a static
  * field named "INSTANCE" containing a singleton.
  */
 public interface Marshaller<T> {
-	T unmarshal(PacketBuffer in);
-	void marshal(PacketBuffer out, T t);
+	T unmarshal(PacketByteBuf in);
+	void marshal(PacketByteBuf out, T t);
 }

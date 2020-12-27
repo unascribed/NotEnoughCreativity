@@ -38,16 +38,16 @@ import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.netwo
 
 import com.google.common.collect.Maps;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.network.play.ClientPlayNetHandler;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.play.client.CCustomPayloadPacket;
-import net.minecraft.network.play.server.SCustomPayloadPlayPacket;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.network.packet.c2s.play.CustomPayloadC2SPacket;
+import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 
 public abstract class Message {
 	private static final class ClassInfo {
@@ -87,16 +87,16 @@ public abstract class Message {
 		
 	}
 	
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	void doHandleClient() {
 		if (async) {
-			handle(Minecraft.getInstance().player);
+			handle(MinecraftClient.getInstance().player);
 		} else {
-			Minecraft.getInstance().enqueue(new Runnable() {
+			MinecraftClient.getInstance().execute(new Runnable() {
 				@Override
-				@OnlyIn(Dist.CLIENT)
+				@Environment(EnvType.CLIENT)
 				public void run() {
-					handle(Minecraft.getInstance().player);
+					handle(MinecraftClient.getInstance().player);
 				}
 			});
 		}
@@ -130,8 +130,8 @@ public abstract class Message {
 		if (side == Side.SERVER) wrongSide();
 		if (e.world instanceof ServerWorld) {
 			ServerWorld srv = (ServerWorld) e.world;
-			SCustomPayloadPlayPacket packet = toClientboundVanillaPacket();
-			srv.getChunkProvider().sendToAllTracking(e, packet);
+			CustomPayloadS2CPacket packet = toClientboundVanillaPacket();
+			srv.getChunkManager().sendToNearbyPlayers(e, packet);
 		}
 	}
 	
@@ -141,7 +141,7 @@ public abstract class Message {
 	public final void sendTo(PlayerEntity player) {
 		if (side == Side.SERVER) wrongSide();
 		if (player instanceof ServerPlayerEntity) {
-			((ServerPlayerEntity) player).connection.sendPacket(toClientboundVanillaPacket());
+			((ServerPlayerEntity) player).networkHandler.sendPacket(toClientboundVanillaPacket());
 		}
 	}
 	
@@ -149,10 +149,10 @@ public abstract class Message {
 	 * For use on the <i>client</i>-side. This is the only valid method for use
 	 * on the client side.
 	 */
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	public final void sendToServer() {
 		if (side == Side.CLIENT) wrongSide();
-		ClientPlayNetHandler conn = Minecraft.getInstance().getConnection();
+		ClientPlayNetworkHandler conn = MinecraftClient.getInstance().getNetworkHandler();
 		if (conn == null) throw new IllegalStateException("Cannot send a message while not connected");
 		conn.sendPacket(toServerboundVanillaPacket());
 	}
@@ -161,16 +161,16 @@ public abstract class Message {
 	 * Mainly intended for internal use, but can be useful for more complex
 	 * use cases.
 	 */
-	public final CCustomPayloadPacket toServerboundVanillaPacket() {
-		return new CCustomPayloadPacket(ctx.channel, ctx.getPayloadFrom(this));
+	public final CustomPayloadC2SPacket toServerboundVanillaPacket() {
+		return new CustomPayloadC2SPacket(ctx.channel, ctx.getPayloadFrom(this));
 	}
 	
 	/**
 	 * Mainly intended for internal use, but can be useful for more complex
 	 * use cases.
 	 */
-	public final SCustomPayloadPlayPacket toClientboundVanillaPacket() {
-		return new SCustomPayloadPlayPacket(ctx.channel, ctx.getPayloadFrom(this));
+	public final CustomPayloadS2CPacket toClientboundVanillaPacket() {
+		return new CustomPayloadS2CPacket(ctx.channel, ctx.getPayloadFrom(this));
 	}
 	
 	

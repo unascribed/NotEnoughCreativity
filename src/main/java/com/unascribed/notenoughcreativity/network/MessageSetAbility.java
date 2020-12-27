@@ -1,6 +1,7 @@
 package com.unascribed.notenoughcreativity.network;
 
 import com.unascribed.notenoughcreativity.Ability;
+import com.unascribed.notenoughcreativity.NECPlayer;
 import com.unascribed.notenoughcreativity.NotEnoughCreativity;
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Message;
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.NetworkContext;
@@ -29,15 +30,14 @@ public class MessageSetAbility extends Message {
 	
 	@Override
 	protected void handle(PlayerEntity player) {
-		int i = player.getPersistentData().getInt("NotEnoughCreativityAbilities");
-		int bit = 1 << ability;
+		if (!(player instanceof NECPlayer)) return;
+		NECPlayer nec = (NECPlayer)player;
 		if (enabled) {
-			i |= bit;
+			nec.nec$getEnabledAbilities().add(Ability.VALUES.get(ability));
 		} else {
-			i &= ~bit;
+			nec.nec$getEnabledAbilities().remove(Ability.VALUES.get(ability));
 		}
-		player.getPersistentData().putInt("NotEnoughCreativityAbilities", i);
-		new MessageAbilities(i).sendTo(player);
+		new MessageAbilities(nec.nec$getEnabledAbilities()).sendTo(player);
 	}
 	
 }

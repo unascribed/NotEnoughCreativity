@@ -32,11 +32,15 @@ package com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.netw
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import org.apache.logging.log4j.LogManager;
+
+import com.unascribed.notenoughcreativity.mixin.AccessorCustomPayload;
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.field.Optional;
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.exception.BadMessageException;
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.exception.WrongSideException;
@@ -52,17 +56,19 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 
 import io.netty.buffer.Unpooled;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.network.play.ServerPlayNetHandler;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.network.NetworkEvent.ClientCustomPayloadEvent;
-import net.minecraftforge.fml.network.NetworkEvent.ServerCustomPayloadEvent;
-import net.minecraftforge.fml.network.event.EventNetworkChannel;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.network.NetworkRegistry;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.c2s.play.CustomPayloadC2SPacket;
+import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.text.LiteralText;
+import net.minecraft.util.Identifier;
 
 public final class NetworkContext {
+	public static final List<NetworkContext> contexts = new ArrayList<>();
+	
 	protected static final Map<Class<? extends Message>, Instanciator<? extends Message>> instanciators = Maps.newHashMap();
 	
 	protected final BiMap<Class<? extends Message>, Integer> packetIds = HashBiMap.create();
@@ -70,17 +76,13 @@ public final class NetworkContext {
 	protected final Multiset<Class<? extends Message>> booleanCount = HashMultiset.create();
 	protected final Multiset<Class<? extends Message>> optionalCount = HashMultiset.create();
 	
-	protected final ResourceLocation channel;
+	protected final Identifier channel;
 	
 	private int nextPacketId = 0;
 	
-	private NetworkContext(ResourceLocation channel) {
+	private NetworkContext(Identifier channel) {
 		this.channel = channel;
-		EventNetworkChannel ch = NetworkRegistry.newEventChannel(channel, () -> "0", s -> true, s -> true);
-		try {
-			ch.addListener(this::onClientCustomPacket);
-		} catch (Throwable t) {}
-		ch.addListener(this::onServerCustomPacket);
+		contexts.add(this);
 	}
 	
 	public NetworkContext register(Class<? extends Message> clazz) {
@@ -110,15 +112,15 @@ public final class NetworkContext {
 	}
 	
 	
-	public ResourceLocation getChannel() {
+	public Identifier getChannel() {
 		return channel;
 	}
 	
 	
 	
-	protected PacketBuffer getPayloadFrom(Message m) {
+	protected PacketByteBuf getPayloadFrom(Message m) {
 		if (!packetIds.containsKey(m.getClass())) throw new BadMessageException(m.getClass() + " is not registered");
-		PacketBuffer payload = new PacketBuffer(Unpooled.buffer());
+		PacketByteBuf payload = new PacketByteBuf(Unpooled.buffer());
 		payload.writeByte(packetIds.get(m.getClass()));
 		int bools = booleanCount.count(m.getClass()) + optionalCount.count(m.getClass());
 		if (bools > 0) {
@@ -147,23 +149,34 @@ public final class NetworkContext {
 	}
 
 
-	public void onServerCustomPacket(ClientCustomPayloadEvent e) {
-		e.getSource().get().setPacketHandled(true);
-		PacketBuffer payload = e.getPayload();
-		Message m = readPacket(Side.SERVER, payload);
-		m.doHandleServer(((ServerPlayNetHandler) e.getSource().get().getNetworkManager().getNetHandler()).player);
+	public boolean handleCustomPacket(ServerPlayNetworkHandler handler, CustomPayloadC2SPacket pkt) {
+		if (((AccessorCustomPayload)pkt).nec$getChannel().equals(channel)) {
+			try {
+				PacketByteBuf payload = ((AccessorCustomPayload)pkt).nec$getData();
+				Message m = readPacket(Side.SERVER, payload);
+				m.doHandleServer(handler.player);
+			} catch (Throwable t) {
+				LogManager.getLogger("Concrete").warn("Exception thrown during packet handling, kicking player", t);
+				handler.disconnect(new LiteralText("Internal server error"));
+			}
+			return true;
+		}
+		return false;
 	}
 	
-	@OnlyIn(Dist.CLIENT)
-	public void onClientCustomPacket(ServerCustomPayloadEvent e) {
-		e.getSource().get().setPacketHandled(true);
-		PacketBuffer payload = e.getPayload();
-		Message m = readPacket(Side.CLIENT, payload);
-		m.doHandleClient();
+	@Environment(EnvType.CLIENT)
+	public boolean handleCustomPacket(ClientPlayNetworkHandler handler, CustomPayloadS2CPacket pkt) {
+		if (pkt.getChannel().equals(channel)) {
+			PacketByteBuf payload = pkt.getData();
+			Message m = readPacket(Side.CLIENT, payload);
+			m.doHandleClient();
+			return true;
+		}
+		return false;
 	}
 	
 	
-	private Message readPacket(Side side, PacketBuffer payload) {
+	private Message readPacket(Side side, PacketByteBuf payload) {
 		int id = payload.readUnsignedByte();
 		if (!packetIds.containsValue(id)) {
 			throw new IllegalArgumentException("Unknown packet id " + id);
@@ -228,7 +241,7 @@ public final class NetworkContext {
 	}
 	
 	
-	public static NetworkContext forChannel(ResourceLocation channel) {
+	public static NetworkContext forChannel(Identifier channel) {
 		return new NetworkContext(channel);
 	}
 

@@ -1,6 +1,7 @@
 package com.unascribed.notenoughcreativity.network;
 
 import com.unascribed.notenoughcreativity.Ability;
+import com.unascribed.notenoughcreativity.NECPlayer;
 import com.unascribed.notenoughcreativity.NotEnoughCreativity;
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Message;
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.NetworkContext;
@@ -8,9 +9,9 @@ import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.netwo
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.field.MarshalledAs;
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.type.ReceivedOn;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 @ReceivedOn(Side.CLIENT)
 public class MessageAbilities extends Message {
@@ -35,9 +36,12 @@ public class MessageAbilities extends Message {
 	}
 	
 	@Override
-	@OnlyIn(Dist.CLIENT)
+	@Environment(EnvType.CLIENT)
 	protected void handle(PlayerEntity player) {
-		player.getPersistentData().putInt("NotEnoughCreativityAbilities", bits);
+		if (!(player instanceof NECPlayer)) return;
+		NECPlayer nec = (NECPlayer)player;
+		nec.nec$getEnabledAbilities().clear();
+		nec.nec$getEnabledAbilities().addAll(Ability.fromBits(bits));
 	}
 	
 }

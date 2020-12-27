@@ -1,40 +1,31 @@
 package com.unascribed.notenoughcreativity;
 
 import java.util.Arrays;
-import java.util.function.Supplier;
+import java.util.EnumSet;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
-
 public enum Ability {
-	NOPICKUP(0, () -> SoundEvents.BLOCK_NOTE_BLOCK_SNARE),
-	ATTACK(0, () -> SoundEvents.BLOCK_NOTE_BLOCK_XYLOPHONE),
-	HEALTH(0, () -> SoundEvents.BLOCK_NOTE_BLOCK_HAT),
-	INSTABREAK(0, () -> SoundEvents.BLOCK_NOTE_BLOCK_BASEDRUM),
-	PICKSWAP(0, () -> SoundEvents.BLOCK_NOTE_BLOCK_BASS),
-	NIGHTVISION(0, () -> SoundEvents.BLOCK_END_PORTAL_FRAME_FILL),
-	NOCLIP(0, () -> SoundEvents.ENTITY_EVOKER_CAST_SPELL),
-	DARKMODE(-1, () -> SoundEvents.BLOCK_NOTE_BLOCK_BELL),
-	LONGREACH(0, () -> SoundEvents.BLOCK_NOTE_BLOCK_FLUTE),
+	NOPICKUP(0),
+	ATTACK(0),
+	HEALTH(0),
+	INSTABREAK(0),
+	PICKSWAP(0),
+	NIGHTVISION(0),
+	NOCLIP(0),
+	DARKMODE(-1),
+	LONGREACH(0),
 	;
 	public static final ImmutableList<Ability> VALUES = ImmutableList.copyOf(values());
 	public static final ImmutableList<Ability> VALUES_SORTED = ImmutableList.sortedCopyOf((a, b) -> Integer.compare(a.weight, b.weight), Arrays.asList(values()));
 	
 	private final int weight;
-	private final Supplier<SoundEvent> sound;
 	
 	private int index = -1;
 	
-	private Ability(int weight, Supplier<SoundEvent> sound) {
+	private Ability(int weight) {
 		this.weight = weight;
-		this.sound = sound;
-	}
-	
-	public SoundEvent getSound() {
-		return sound.get();
 	}
 	
 	public int getWeight() {
@@ -48,8 +39,26 @@ public enum Ability {
 		return index;
 	}
 	
-	public boolean isEnabled(PlayerEntity player) {
-		if (player == null) return false;
-		return NotEnoughCreativity.isCreativePlus(player) && (player.getPersistentData().getInt("NotEnoughCreativityAbilities") & (1 << ordinal())) != 0;
+	public int bit() {
+		return 1 << ordinal();
 	}
+
+	public static Set<Ability> fromBits(int bits) {
+		EnumSet<Ability> set = EnumSet.noneOf(Ability.class);
+		for (Ability a : Ability.VALUES) {
+			if ((bits & a.bit()) != 0) {
+				set.add(a);
+			}
+		}
+		return set;
+	}
+	
+	public static int toBits(Set<Ability> set) {
+		int i = 0;
+		for (Ability a : set) {
+			i |= a.bit();
+		}
+		return i;
+	}
+	
 }

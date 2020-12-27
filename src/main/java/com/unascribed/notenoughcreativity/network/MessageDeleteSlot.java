@@ -6,7 +6,7 @@ import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.netwo
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Side;
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.field.MarshalledAs;
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.annotation.type.ReceivedOn;
-import com.unascribed.notenoughcreativity.ContainerCreativePlus;
+import com.unascribed.notenoughcreativity.CreativePlusScreenHandler;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -28,8 +28,8 @@ public class MessageDeleteSlot extends Message {
 	
 	@Override
 	protected void handle(PlayerEntity player) {
-		if (player.container instanceof ContainerCreativePlus) {
-			player.container.getSlot(slot).putStack(ItemStack.EMPTY);
+		if (player.playerScreenHandler instanceof CreativePlusScreenHandler) {
+			player.playerScreenHandler.getSlot(slot).setStack(ItemStack.EMPTY);
 		}
 	}
 	

@@ -1,5 +1,6 @@
 package com.unascribed.notenoughcreativity.network;
 
+import com.unascribed.notenoughcreativity.NECPlayer;
 import com.unascribed.notenoughcreativity.NotEnoughCreativity;
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.Message;
 import com.unascribed.notenoughcreativity.repackage.com.elytradev.concrete.network.NetworkContext;
@@ -24,8 +25,10 @@ public class MessageSetEnabled extends Message {
 	
 	@Override
 	protected void handle(PlayerEntity player) {
-		if (player.abilities.isCreativeMode) {
-			player.getPersistentData().putBoolean("NotEnoughCreativity", enabled);
+		if (!(player instanceof NECPlayer)) return;
+		NECPlayer nec = (NECPlayer)player;
+		if (player.abilities.creativeMode) {
+			nec.nec$setCreativePlusEnabled(enabled);
 			NotEnoughCreativity.updateInventory(player);
 		}
 	}
