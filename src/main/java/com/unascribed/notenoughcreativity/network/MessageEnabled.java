@@ -37,16 +37,20 @@ public class MessageEnabled extends Message {
 		// block the network thread via submitAndJoin to ensure we get a word in edgewise before
 		// the slot packets arrive and attempt to set invalid indices in the creative screen
 		MinecraftClient mc = MinecraftClient.getInstance();
-		mc.submitAndJoin(() -> {
-			((NECPlayer)mc.player).nec$setCreativePlusEnabled(enabled);
-			NotEnoughCreativity.updateInventory(mc.player);
-			if (enabled) {
-				if (mc.currentScreen instanceof CreativeInventoryScreen) {
-					mc.openScreen(new CreativePlusScreen(new CreativePlusScreenHandler(mc.player)));
-				}
-			} else {
-				if (mc.currentScreen instanceof CreativePlusScreen) {
-					mc.openScreen(new CreativeInventoryScreen(mc.player));
+		mc.submitAndJoin(new Runnable() {
+			@Override
+			@Environment(EnvType.CLIENT)
+			public void run() {
+				((NECPlayer)mc.player).nec$setCreativePlusEnabled(enabled);
+				NotEnoughCreativity.updateInventory(mc.player);
+				if (enabled) {
+					if (mc.currentScreen instanceof CreativeInventoryScreen) {
+						mc.openScreen(new CreativePlusScreen(new CreativePlusScreenHandler(mc.player)));
+					}
+				} else {
+					if (mc.currentScreen instanceof CreativePlusScreen) {
+						mc.openScreen(new CreativeInventoryScreen(mc.player));
+					}
 				}
 			}
 		});
