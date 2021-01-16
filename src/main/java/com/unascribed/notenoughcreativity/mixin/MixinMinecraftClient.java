@@ -46,7 +46,11 @@ public class MixinMinecraftClient {
 	public GameOptions options;
 	@Shadow
 	public ClientPlayerInteractionManager interactionManager;
+	@Shadow
+	public boolean chunkCullingEnabled;
 	
+	@Unique
+	private boolean nec$wasNoclipping;
 	@Unique
 	private boolean nec$needRestoreGamma;
 	@Unique
@@ -58,6 +62,12 @@ public class MixinMinecraftClient {
 			nec$needRestoreGamma = true;
 			nec$oldGamma = options.gamma;
 			options.gamma = 200;
+		}
+		if (AbilityCheck.enabled(player, Ability.NOCLIP)) {
+			nec$wasNoclipping = true;
+			chunkCullingEnabled = false;
+		} else if (nec$wasNoclipping) {
+			chunkCullingEnabled = true;
 		}
 	}
 	
