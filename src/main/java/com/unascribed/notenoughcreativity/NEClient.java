@@ -137,6 +137,7 @@ public class NEClient {
 		}
 	}
 	
+	private boolean wasNoclipping = false;
 	private boolean needRestoreGamma = false;
 	private float oldGamma;
 	
@@ -148,9 +149,19 @@ public class NEClient {
 				oldGamma = Minecraft.getMinecraft().gameSettings.gammaSetting;
 				Minecraft.getMinecraft().gameSettings.gammaSetting = 200;
 			}
-		} else if (needRestoreGamma) {
-			needRestoreGamma = false;
-			Minecraft.getMinecraft().gameSettings.gammaSetting = oldGamma;
+			if (Ability.NOCLIP.isEnabled(Minecraft.getMinecraft().player)) {
+				wasNoclipping = true;
+				// Yarn name: "chunkCullingEnabled"
+				// MCP, why are you like this?
+				Minecraft.getMinecraft().renderChunksMany = false;
+			} else if (wasNoclipping) {
+				Minecraft.getMinecraft().renderChunksMany = true;
+			}
+		} else {
+			if (needRestoreGamma) {
+				needRestoreGamma = false;
+				Minecraft.getMinecraft().gameSettings.gammaSetting = oldGamma;
+			}
 		}
 	}
 	
