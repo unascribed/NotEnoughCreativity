@@ -1,3 +1,4 @@
 accessWidener v1 named
 
 mutable field net/minecraft/entity/player/PlayerEntity playerScreenHandler Lnet/minecraft/screen/PlayerScreenHandler;
+mutable field net/minecraft/screen/PlayerScreenHandler craftingInput Lnet/minecraft/inventory/CraftingInventory;

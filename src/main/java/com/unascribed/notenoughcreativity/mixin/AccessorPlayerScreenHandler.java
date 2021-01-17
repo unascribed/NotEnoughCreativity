@@ -12,6 +12,8 @@ public interface AccessorPlayerScreenHandler {
 
 	@Accessor("craftingInput")
 	CraftingInventory nec$getCraftingInput();
+	@Accessor("craftingInput")
+	void nec$setCraftingInput(CraftingInventory ci);
 	
 	@Accessor("craftingResult")
 	CraftingResultInventory nec$getCraftingResult();

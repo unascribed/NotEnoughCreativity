@@ -93,7 +93,7 @@ public class MixinMinecraftClient {
 	public void tick(CallbackInfo ci) {
 		boolean cp = NotEnoughCreativity.isCreativePlus(player);
 		if (NEClient.INSTANCE.keyDeleteItem.isPressed()) {
-			if (cp) {
+			if (cp && !player.getMainHandStack().isEmpty()) {
 				new MessageDeleteSlot(82+player.inventory.selectedSlot).sendToServer();
 			}
 		}

@@ -50,8 +50,10 @@ public class NotEnoughCreativity implements ModInitializer {
 		PlayerScreenHandler orig = player.playerScreenHandler;
 		PlayerScreenHandler nw;
 		if (enabled) {
+			if (orig instanceof CreativePlusScreenHandler) return;
 			nw = new CreativePlusScreenHandler(player);
 		} else {
+			if (!(orig instanceof CreativePlusScreenHandler)) return;
 			nw = new PlayerScreenHandler(player.inventory, !player.world.isClient, player);
 		}
 		if (!player.world.isClient) {
@@ -64,6 +66,9 @@ public class NotEnoughCreativity implements ModInitializer {
 		if (orig == player.currentScreenHandler) {
 			player.currentScreenHandler = nw;
 		}
+		// technically this is wrong but FastWorkbench listens for this despite the fact Forge
+		// doesn't fire this event for the player container
+		ForgeHandler.firePlayerContainerOpen(player);
 		if (player instanceof ScreenHandlerListener) {
 			nw.addListener((ScreenHandlerListener)player);
 		}
