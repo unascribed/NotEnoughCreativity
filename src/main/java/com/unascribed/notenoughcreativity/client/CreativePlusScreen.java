@@ -1,5 +1,6 @@
 package com.unascribed.notenoughcreativity.client;
 
+import java.lang.reflect.Constructor;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -12,6 +13,7 @@ import com.unascribed.notenoughcreativity.Ability;
 import com.unascribed.notenoughcreativity.AbilityCheck;
 import com.unascribed.notenoughcreativity.CPSAccess;
 import com.unascribed.notenoughcreativity.CreativePlusScreenHandler;
+import com.unascribed.notenoughcreativity.LoaderHandler;
 import com.unascribed.notenoughcreativity.NEClient;
 import com.unascribed.notenoughcreativity.mixin.AccessorFocusedSlot;
 import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
@@ -22,6 +24,7 @@ import com.google.common.collect.Lists;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
+import net.minecraft.client.gui.widget.AbstractButtonWidget;
 import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.sound.PositionedSoundInstance;
@@ -33,6 +36,7 @@ import net.minecraft.text.OrderedText;
 import net.minecraft.text.StringVisitable;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 
 public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler> implements CPSAccess {
 
@@ -55,6 +59,27 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 		backgroundHeightAddn = 162;
 		backgroundWidth = 198;
 		backgroundHeight = 212;
+	}
+	
+	@Override
+	protected void init() {
+		super.init();
+		try {
+			String pkg = LoaderHandler.isNotForge() ? "screen" : "gui";
+			Class<?> curiosScreen = Class.forName("top.theillusivec4.curios.client."+pkg+".CuriosScreen");
+			Pair<Integer, Integer> ofs = (Pair<Integer, Integer>)curiosScreen.getMethod("getButtonOffset", boolean.class).invoke(null, false);
+			Class<?> curiosButton = Class.forName("top.theillusivec4.curios.client."+pkg+".CuriosButton");
+			// package-private on Forge :(
+			Constructor<?> cons = curiosButton.getDeclaredConstructor(HandledScreen.class, int.class, int.class, int.class, int.class,
+					int.class, int.class, int.class, Identifier.class);
+			cons.setAccessible(true);
+			// HandledScreen<?> parentGui, int xIn, int yIn, int widthIn, int heightIn,
+			//  int textureOffsetX, int textureOffsetY, int yDiffText, Identifier identifier
+			addButton((AbstractButtonWidget)cons.newInstance(this, x+ofs.getLeft()-52, y+ofs.getRight()+93, 14, 14, 50, 0, 14, new Identifier("curios", "textures/gui/inventory.png")));
+		} catch (ClassNotFoundException ignore) {
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 	
 	public int getX() {
@@ -167,7 +192,7 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 				gp.motionX = (Math.random()-0.5)/2;
 				gp.motionY = -1;
 				gp.gravity = 0;
-				gp.maxAge = 300;
+				gp.maxAge = 100;
 				particles.add(gp);
 			}
 			x -= 12;
