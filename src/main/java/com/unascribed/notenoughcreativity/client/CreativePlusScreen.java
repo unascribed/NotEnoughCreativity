@@ -233,7 +233,7 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 			case DARKMODE: sound = SoundEvents.BLOCK_NOTE_BLOCK_BELL; break;
 			case LONGREACH: sound = SoundEvents.BLOCK_NOTE_BLOCK_FLUTE; break;
 		}
-		float mod = 0;
+		float mod = 1;
 		if (a == Ability.NOCLIP) {
 			mod = 1.5f;
 		}
