@@ -1,9 +1,11 @@
 package com.unascribed.notenoughcreativity;
 
-import org.apache.logging.log4j.LogManager;
+import java.util.List;
 
 import com.mojang.datafixers.util.Pair;
 import com.unascribed.notenoughcreativity.mixin.AccessorPlayerScreenHandler;
+import com.unascribed.notenoughcreativity.mixin.AccessorScreenHandler;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.entity.EquipmentSlot;
@@ -15,12 +17,9 @@ import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.CraftingResultSlot;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
 
 public class CreativePlusScreenHandler extends PlayerScreenHandler implements CPSHAccess {
 
@@ -37,17 +36,25 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 	
 	public final Inventory mirror;
 	
-	private boolean acceptSlots;
-	
 	public Slot deleteSlot, returnSlot;
 	
 	private boolean fastbench = false;
-	private CraftingInventory craftingInput = ((AccessorPlayerScreenHandler)this).nec$getCraftingInput();
-	private CraftingResultInventory craftingResult = ((AccessorPlayerScreenHandler)this).nec$getCraftingResult();
+	private CraftingInventory craftingInput;
+	private CraftingResultInventory craftingResult;
 	
 	public CreativePlusScreenHandler(PlayerEntity player) {
 		super(player.inventory, !player.world.isClient, player);
-		acceptSlots = true;
+		// FastWorkbench may have replaced the result slot, so keep it
+		clearExcFirst(slots);
+		clearExcFirst(((AccessorScreenHandler)this).nec$getTrackedStacks());
+		
+		Slot resSlot = slots.get(0);
+		resSlot.x = 9;
+		resSlot.y = 130;
+		
+		craftingInput = ((AccessorPlayerScreenHandler)this).nec$getCraftingInput();
+		craftingResult = ((AccessorPlayerScreenHandler)this).nec$getCraftingResult();
+		
 		this.player = player;
 		
 		mirror = ((NECPlayer)player).nec$getCreativePlusInventory();
@@ -55,32 +62,6 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 		int bX = 31;
 		int bY = 18;
 		int invOfsY = 112;
-		
-		boolean addVanillaResSlot = true;
-		try {
-			Class<?> scs = Class.forName("shadows.fastbench.gui.SlotCraftingSucks");
-			Class<?> cie = Class.forName("shadows.fastbench.gui.CraftingInventoryExt");
-			
-			try {
-				CraftingInventory newCi = (CraftingInventory)cie.getConstructor(ScreenHandler.class, int.class, int.class)
-						.newInstance(this, 2, 2);
-				Slot newResSlot = (Slot)scs.getConstructor(PlayerEntity.class, CraftingInventory.class, CraftingResultInventory.class, int.class, int.class, int.class)
-						.newInstance(player, newCi, craftingResult, 0, 9, 130);
-				// done with the unsafe things that may throw, now update our fields/etc
-				((AccessorPlayerScreenHandler)this).nec$setCraftingInput(newCi);
-				craftingInput = newCi;
-				addSlot(newResSlot);
-				fastbench = true;
-				LogManager.getLogger("NotEnoughCreativity").info("FastWorkbench compatibility initialized");
-				addVanillaResSlot = false;
-			} catch (Throwable t) {
-				LogManager.getLogger("NotEnoughCreativity").warn("Failed to initialize FastWorkbench compatibility", t);
-			}
-		} catch (Throwable t) {
-		}
-		if (addVanillaResSlot) {
-			addSlot(new CraftingResultSlot(player, craftingInput, craftingResult, 0, 9, 130));
-		}
 		
 		for (int y = 0; y < 6; y++) {
 			for (int x = 0; x < 9; x++) {
@@ -194,6 +175,11 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 		});
 	}
 	
+	private void clearExcFirst(List<?> li) {
+		if (li.size() <= 1) return;
+		li.subList(1, li.size()).clear();
+	}
+
 	@Override
 	public Inventory getMirror() {
 		return mirror;
@@ -266,31 +252,10 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 		}
 		return super.onSlotClick(slotId, dragType, actionType, player);
 	}
-	
-	@Override
-	protected Slot addSlot(Slot slotIn) {
-		if (!acceptSlots) return slotIn;
-		return super.addSlot(slotIn);
-	}
 
 	@Override
 	public boolean canUse(PlayerEntity player) {
 		return player == this.player;
-	}
-	
-	@Override
-	public void onContentChanged(Inventory inventory) {
-		if (fastbench) {
-			try {
-				Class.forName("shadows.fastbench.gui.ContainerFastBench").getMethod("slotChangedCraftingGrid",
-						World.class, PlayerEntity.class, Class.forName("shadows.fastbench.gui.CraftingInventoryExt"), CraftingResultInventory.class)
-					.invoke(null, player.world, player, craftingInput, craftingResult);
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-		} else {
-			super.onContentChanged(inventory);
-		}
 	}
 	
 }
