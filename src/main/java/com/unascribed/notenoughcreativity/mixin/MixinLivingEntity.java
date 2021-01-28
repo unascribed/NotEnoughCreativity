@@ -12,6 +12,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.Vec3d;
 
 @Mixin(LivingEntity.class)
 public class MixinLivingEntity {
@@ -28,5 +29,15 @@ public class MixinLivingEntity {
 			}
 		}
 	}
+	
+	@Inject(at=@At("HEAD"), method="travel(Lnet/minecraft/util/math/Vec3d;)V")
+	public void travel(Vec3d vec, CallbackInfo ci) {
+		Object self = this;
+		if (self instanceof PlayerEntity && AbilityCheck.enabled((PlayerEntity)self, Ability.SUPER_SPEED)) {
+			PlayerEntity pe = (PlayerEntity)self;
+			pe.flyingSpeed *= 4;
+		}
+	}
+	
 	
 }

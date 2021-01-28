@@ -1,5 +1,6 @@
 package com.unascribed.notenoughcreativity.mixin;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
@@ -20,7 +21,7 @@ public class MixinPlayerEntityRenderer {
 
 	@Inject(at=@At("HEAD"), method="render(Lnet/minecraft/client/network/AbstractClientPlayerEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V")
 	public void renderPre(AbstractClientPlayerEntity player, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-		if (vertexConsumers instanceof VertexConsumerProvider.Immediate && ((NECPlayer)player).nec$isNoclipping() || AbilityCheck.enabled(player, Ability.NOCLIP)) {
+		if (vertexConsumers instanceof VertexConsumerProvider.Immediate && (player != MinecraftClient.getInstance().player && ((NECPlayer)player).nec$isNoclipping()) || AbilityCheck.enabled(player, Ability.NOCLIP)) {
 			Stipple.grey30();
 			Stipple.enable();
 		}
@@ -28,7 +29,7 @@ public class MixinPlayerEntityRenderer {
 	
 	@Inject(at=@At("TAIL"), method="render(Lnet/minecraft/client/network/AbstractClientPlayerEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V")
 	public void renderPost(AbstractClientPlayerEntity player, float yaw, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-		if (vertexConsumers instanceof VertexConsumerProvider.Immediate && ((NECPlayer)player).nec$isNoclipping() || AbilityCheck.enabled(player, Ability.NOCLIP)) {
+		if (vertexConsumers instanceof VertexConsumerProvider.Immediate && (player != MinecraftClient.getInstance().player && ((NECPlayer)player).nec$isNoclipping()) || AbilityCheck.enabled(player, Ability.NOCLIP)) {
 			VertexConsumerProvider.Immediate imm = (VertexConsumerProvider.Immediate)vertexConsumers;
 			if (((NECPlayer)player).nec$isNoclipping() || AbilityCheck.enabled(player, Ability.NOCLIP)) {
 				imm.draw();

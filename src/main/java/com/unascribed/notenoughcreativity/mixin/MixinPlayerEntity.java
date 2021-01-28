@@ -29,8 +29,11 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Vec3d;
 
 @Mixin(PlayerEntity.class)
 public class MixinPlayerEntity implements NECPlayer {
@@ -48,6 +51,10 @@ public class MixinPlayerEntity implements NECPlayer {
 	private boolean nec$vanillaReachExtension = false;
 	@Unique
 	private SimpleInventory nec$inventory = new SimpleInventory(54);
+	@Unique
+	private Vec3d nec$savedPosition;
+	@Unique
+	private Identifier nec$savedDimension;
 	
 	@Inject(at=@At("HEAD"), method="updateWaterSubmersionState()Z", cancellable=true)
 	public void onLateTick(CallbackInfoReturnable<Boolean> ci) {
@@ -110,6 +117,14 @@ public class MixinPlayerEntity implements NECPlayer {
 			inv.add(entry);
 		}
 		tag.put("notenoughcreativity:inventory", inv);
+		if (nec$savedPosition != null) {
+			ListTag li = new ListTag();
+			li.add(DoubleTag.of(nec$savedPosition.x));
+			li.add(DoubleTag.of(nec$savedPosition.y));
+			li.add(DoubleTag.of(nec$savedPosition.z));
+			tag.put("notenoughcreativity:saved_position", li);
+			tag.putString("notenoughcreativity:saved_dimension", nec$savedDimension.toString());
+		}
 	}
 	
 	@Inject(at=@At("TAIL"), method="readCustomDataFromTag(Lnet/minecraft/nbt/CompoundTag;)V")
@@ -143,6 +158,14 @@ public class MixinPlayerEntity implements NECPlayer {
 		}
 		nec$enabledAbilities.clear();
 		nec$enabledAbilities.addAll(Ability.fromBits(enabledAbilitiesBits));
+		if (tag.contains("notenoughcreativity:saved_position")) {
+			ListTag li = tag.getList("notenoughcreativity:saved_position", NbtType.LIST);
+			nec$savedPosition = new Vec3d(li.getDouble(0), li.getDouble(1), li.getDouble(2));
+			nec$savedDimension = Identifier.tryParse(tag.getString("notenoughcreativity:saved_dimension"));
+		} else {
+			nec$savedPosition = null;
+			nec$savedDimension = null;
+		}
 	}
 
 	@Override
@@ -162,7 +185,7 @@ public class MixinPlayerEntity implements NECPlayer {
 
 	@Override
 	public boolean nec$isNoclipping() {
-		return nec$noclipping;
+		return nec$noclipping && ((PlayerEntity)(Object)this).isCreative();
 	}
 
 	@Override
@@ -183,6 +206,26 @@ public class MixinPlayerEntity implements NECPlayer {
 	@Override
 	public void nec$setVanillaReachExtensionEnabled(boolean enabled) {
 		nec$vanillaReachExtension = enabled;
+	}
+
+	@Override
+	public Vec3d nec$getSavedPosition() {
+		return nec$savedPosition;
+	}
+
+	@Override
+	public void nec$setSavedPosition(Vec3d pos) {
+		nec$savedPosition = pos;
+	}
+
+	@Override
+	public Identifier nec$getSavedDimension() {
+		return nec$savedDimension;
+	}
+
+	@Override
+	public void nec$setSavedDimension(Identifier dim) {
+		nec$savedDimension = dim;
 	}
 	
 }

@@ -16,6 +16,8 @@ public enum Ability {
 	NOCLIP(0),
 	DARKMODE(-1),
 	LONGREACH(0),
+	FREE_FLIGHT(0),
+	SUPER_SPEED(0),
 	;
 	public static final ImmutableList<Ability> VALUES = ImmutableList.copyOf(values());
 	public static final ImmutableList<Ability> VALUES_SORTED = ImmutableList.sortedCopyOf((a, b) -> Integer.compare(a.weight, b.weight), Arrays.asList(values()));

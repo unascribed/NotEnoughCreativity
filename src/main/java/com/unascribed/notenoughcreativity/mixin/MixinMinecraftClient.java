@@ -33,7 +33,10 @@ import com.unascribed.notenoughcreativity.client.CreativePlusScreen;
 import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
 import com.unascribed.notenoughcreativity.network.MessagePickBlock;
 import com.unascribed.notenoughcreativity.network.MessagePickEntity;
+import com.unascribed.notenoughcreativity.network.MessageRecallPosition;
+import com.unascribed.notenoughcreativity.network.MessageSavePosition;
 import com.unascribed.notenoughcreativity.network.MessageSetAbility;
+import com.unascribed.notenoughcreativity.network.MessageWarp;
 
 @Mixin(MinecraftClient.class)
 public class MixinMinecraftClient {
@@ -52,30 +55,15 @@ public class MixinMinecraftClient {
 	@Unique
 	private boolean nec$wasNoclipping;
 	@Unique
-	private boolean nec$needRestoreGamma;
-	@Unique
 	private double nec$oldGamma;
 	
 	@Inject(at=@At("HEAD"), method="render(Z)V", cancellable=true)
 	public void renderPre(boolean tick, CallbackInfo ci) {
-		if (AbilityCheck.enabled(player, Ability.NIGHTVISION)) {
-			nec$needRestoreGamma = true;
-			nec$oldGamma = options.gamma;
-			options.gamma = 200;
-		}
 		if (AbilityCheck.enabled(player, Ability.NOCLIP)) {
 			nec$wasNoclipping = true;
 			chunkCullingEnabled = false;
 		} else if (nec$wasNoclipping) {
 			chunkCullingEnabled = true;
-		}
-	}
-	
-	@Inject(at=@At("RETURN"), method="render(Z)V", cancellable=true)
-	public void renderPost(boolean tick, CallbackInfo ci) {
-		if (nec$needRestoreGamma) {
-			nec$needRestoreGamma = false;
-			options.gamma = nec$oldGamma;
 		}
 	}
 	
@@ -107,6 +95,15 @@ public class MixinMinecraftClient {
 							new TranslatableText("notenoughcreativity.ability."+en.getKey().name().toLowerCase(Locale.ROOT)+".name")), true);
 				}
 			}
+		}
+		if (NEClient.INSTANCE.keyRecallPosition.wasPressed() && cp) {
+			new MessageRecallPosition().sendToServer();
+		}
+		if (NEClient.INSTANCE.keySavePosition.wasPressed() && cp) {
+			new MessageSavePosition().sendToServer();
+		}
+		if (NEClient.INSTANCE.keyWarp.wasPressed() && cp) {
+			new MessageWarp().sendToServer();
 		}
 		if (AbilityCheck.enabled(player, Ability.INSTABREAK)) {
 			((AccessorClientPlayerInteractionManager)interactionManager).nec$setBlockBreakingCooldown(0);

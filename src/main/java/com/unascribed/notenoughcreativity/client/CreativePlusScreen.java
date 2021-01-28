@@ -257,6 +257,8 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 			case NOCLIP: sound = SoundEvents.ENTITY_EVOKER_CAST_SPELL; break;
 			case DARKMODE: sound = SoundEvents.BLOCK_NOTE_BLOCK_BELL; break;
 			case LONGREACH: sound = SoundEvents.BLOCK_NOTE_BLOCK_FLUTE; break;
+			case FREE_FLIGHT: sound = SoundEvents.BLOCK_NOTE_BLOCK_PLING; break;
+			case SUPER_SPEED: sound = SoundEvents.BLOCK_NOTE_BLOCK_BANJO; break;
 		}
 		float mod = 1;
 		if (a == Ability.NOCLIP) {

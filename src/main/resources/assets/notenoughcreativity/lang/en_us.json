@@ -13,9 +13,25 @@
     "key.notenoughcreativity.toggle_ability.noclip": "Toggle No-Clip",
     "key.notenoughcreativity.toggle_ability.darkmode": "Toggle Dark Mode",
     "key.notenoughcreativity.toggle_ability.longreach": "Toggle Long Reach",
-
+    "key.notenoughcreativity.toggle_ability.free_flight": "Toggle Free Flight",
+    "key.notenoughcreativity.toggle_ability.super_speed": "Toggle Super Speed",
+    
+    "key.notenoughcreativity.hold.noclip": "No-Clip",
+    "key.notenoughcreativity.hold.super_speed": "Super Speed",
+    
+    "key.notenoughcreativity.save_position": "Save Location",
+    "key.notenoughcreativity.recall_position": "Load Location",
+    "key.notenoughcreativity.warp": "Warp",
+    
+    "key.notenoughcreativity.down": "Move Down",
+    "key.notenoughcreativity.up": "Move Up",
+    
     "msg.notenoughcreativity.ability_toggle.true": "%s is now §aENABLED",
     "msg.notenoughcreativity.ability_toggle.false": "%s is now §cDISABLED",
+    "msg.notenoughcreativity.saved_position": "Location saved",
+    "msg.notenoughcreativity.position_recall.success": "Location loaded",
+    "msg.notenoughcreativity.position_recall.fail.no_pos": "No location to recall",
+    "msg.notenoughcreativity.position_recall.fail.no_dim": "Target dimension is missing",
 
     "notenoughcreativity.ability.nopickup.name": "No Item Pickup",
     "notenoughcreativity.ability.nopickup.desc": "Completely prevent item pickup, to avoid inventory clutter.",
@@ -34,5 +50,9 @@
     "notenoughcreativity.ability.darkmode.name": "Dark Mode",
     "notenoughcreativity.ability.darkmode.desc": "Make this GUI darker.",
     "notenoughcreativity.ability.longreach.name": "Long Reach",
-    "notenoughcreativity.ability.longreach.desc": "Increase your reach from 4 blocks to 12 blocks."
+    "notenoughcreativity.ability.longreach.desc": "Increase your reach from 4 blocks to 12 blocks.",
+    "notenoughcreativity.ability.free_flight.name": "Free Flight",
+    "notenoughcreativity.ability.free_flight.desc": "Unlocked six-axis flight with no velocity or plane restriction. Similar to MCEdit and older modded flight from the Classic WoM client and Singleplayer Commands.",
+    "notenoughcreativity.ability.super_speed.name": "Super Speed",
+    "notenoughcreativity.ability.super_speed.desc": "Quadruples your air speed."
 }

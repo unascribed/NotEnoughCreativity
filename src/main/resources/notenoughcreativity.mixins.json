@@ -29,7 +29,9 @@
     "MixinInGameHud",
     "MixinMinecraftClient",
     "MixinPlayerEntityRenderer",
-    "MixinSpriteAtlasTexture"
+    "MixinSpriteAtlasTexture",
+    "MixinClientPlayerEntity",
+    "MixinLightmapTextureManager"
   ],
   "injectors": {
     "defaultRequire": 1

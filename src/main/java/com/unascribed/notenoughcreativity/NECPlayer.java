@@ -3,6 +3,8 @@ package com.unascribed.notenoughcreativity;
 import java.util.Set;
 
 import net.minecraft.inventory.Inventory;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Vec3d;
 
 public interface NECPlayer {
 
@@ -15,6 +17,11 @@ public interface NECPlayer {
 	void nec$setNoclipping(boolean noclipping);
 	
 	Inventory nec$getCreativePlusInventory();
+	
+	Identifier nec$getSavedDimension();
+	void nec$setSavedDimension(Identifier dim);
+	Vec3d nec$getSavedPosition();
+	void nec$setSavedPosition(Vec3d pos);
 	
 	// NOT USED under Forge! See ReachHandler
 	boolean nec$isVanillaReachExtensionEnabled();
