@@ -52,7 +52,7 @@
     "notenoughcreativity.ability.longreach.name": "Long Reach",
     "notenoughcreativity.ability.longreach.desc": "Increase your reach from 4 blocks to 12 blocks.",
     "notenoughcreativity.ability.free_flight.name": "Free Flight",
-    "notenoughcreativity.ability.free_flight.desc": "Unlocked six-axis flight with no velocity or plane restriction. Similar to MCEdit and older modded flight from the Classic WoM client and Singleplayer Commands.",
+    "notenoughcreativity.ability.free_flight.desc": "Unlocked full-3D flight with no velocity or plane restriction. Similar to MCEdit and older modded flight from the Classic WoM client and Singleplayer Commands.",
     "notenoughcreativity.ability.super_speed.name": "Super Speed",
     "notenoughcreativity.ability.super_speed.desc": "Quadruples your air speed."
 }
