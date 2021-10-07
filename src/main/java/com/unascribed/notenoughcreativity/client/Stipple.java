@@ -7,16 +7,32 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 public class Stipple {
-
+	
 	private static final ByteBuffer buf = BufferUtils.createByteBuffer(128);
 	
+	private static Boolean canUseStipple = System.getProperty("notenoughcreativity.forceStipple") == null ? null : Boolean.getBoolean("notenoughcreativity.forceStipple");
+	
+	private static boolean canUse() {
+		if (canUseStipple == null) {
+			canUseStipple = !(GL11.glGetString(GL11.GL_VENDOR).contains("NVIDIA"));
+		}
+		return canUseStipple;
+	}
+	
 	private static void stipple(long[] arr) {
+		if (!canUse()) return;
 		buf.asLongBuffer().put(arr);
 		GL11.glPolygonStipple(buf);
 	}
 	
-	public static void enable() { GL11.glEnable(GL11.GL_POLYGON_STIPPLE); }
-	public static void disable() { GL11.glDisable(GL11.GL_POLYGON_STIPPLE); }
+	public static void enable() {
+		if (!canUse()) return;
+		GL11.glEnable(GL11.GL_POLYGON_STIPPLE);
+	}
+	public static void disable() {
+		if (!canUse()) return;
+		GL11.glDisable(GL11.GL_POLYGON_STIPPLE);
+	}
 	
 	public static void   grey0() { stipple(GREY_0); }
 	public static void   grey5() { stipple(GREY_5); }

@@ -167,6 +167,22 @@ public class MixinPlayerEntity implements NECPlayer {
 			nec$savedDimension = null;
 		}
 	}
+	
+	@Inject(at=@At("HEAD"), method="handleFallDamage(FF)Z")
+	public void handleFallDamageHead(float a, float b, CallbackInfoReturnable<Boolean> ci) {
+		PlayerEntity self = (PlayerEntity)(Object)this;
+		if (AbilityCheck.enabled(self, Ability.HEALTH)) {
+			self.abilities.allowFlying = false;
+		}
+	}
+	
+	@Inject(at=@At("RETURN"), method="handleFallDamage(FF)Z")
+	public void handleFallDamageTail(float a, float b, CallbackInfoReturnable<Boolean> ci) {
+		PlayerEntity self = (PlayerEntity)(Object)this;
+		if (AbilityCheck.enabled(self, Ability.HEALTH)) {
+			self.abilities.allowFlying = true;
+		}
+	}
 
 	@Override
 	public Set<Ability> nec$getEnabledAbilities() {
