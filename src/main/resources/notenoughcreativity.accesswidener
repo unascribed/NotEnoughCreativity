@@ -2,6 +2,11 @@ accessWidener v1 named
 
 mutable field net/minecraft/entity/player/PlayerEntity playerScreenHandler Lnet/minecraft/screen/PlayerScreenHandler;
 mutable field net/minecraft/screen/PlayerScreenHandler craftingInput Lnet/minecraft/inventory/CraftingInventory;
+mutable field net/minecraft/screen/PlayerScreenHandler EMPTY_HELMET_SLOT_TEXTURE Lnet/minecraft/util/Identifier;
+mutable field net/minecraft/screen/PlayerScreenHandler EMPTY_CHESTPLATE_SLOT_TEXTURE Lnet/minecraft/util/Identifier;
+mutable field net/minecraft/screen/PlayerScreenHandler EMPTY_LEGGINGS_SLOT_TEXTURE Lnet/minecraft/util/Identifier;
+mutable field net/minecraft/screen/PlayerScreenHandler EMPTY_BOOTS_SLOT_TEXTURE Lnet/minecraft/util/Identifier;
+mutable field net/minecraft/screen/PlayerScreenHandler EMPTY_OFFHAND_ARMOR_SLOT Lnet/minecraft/util/Identifier;
 
 mutable field net/minecraft/screen/slot/Slot x I
 mutable field net/minecraft/screen/slot/Slot y I

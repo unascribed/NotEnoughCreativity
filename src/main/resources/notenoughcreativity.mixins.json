@@ -8,6 +8,7 @@
     "AccessorCustomPayload",
     "AccessorPlayerScreenHandler",
     "AccessorScreenHandler",
+    "AccessorSlot",
     "InvokerDamageSource",
     "MixinEntity",
     "MixinItemEntity",

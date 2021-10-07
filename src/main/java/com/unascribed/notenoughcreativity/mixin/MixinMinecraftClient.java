@@ -8,8 +8,6 @@ import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.options.GameOptions;
 import net.minecraft.client.options.KeyBinding;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 
 import java.util.Locale;
@@ -31,8 +29,6 @@ import com.unascribed.notenoughcreativity.NEClient;
 import com.unascribed.notenoughcreativity.NotEnoughCreativity;
 import com.unascribed.notenoughcreativity.client.CreativePlusScreen;
 import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
-import com.unascribed.notenoughcreativity.network.MessagePickBlock;
-import com.unascribed.notenoughcreativity.network.MessagePickEntity;
 import com.unascribed.notenoughcreativity.network.MessageRecallPosition;
 import com.unascribed.notenoughcreativity.network.MessageSavePosition;
 import com.unascribed.notenoughcreativity.network.MessageSetAbility;
@@ -82,7 +78,7 @@ public class MixinMinecraftClient {
 		boolean cp = NotEnoughCreativity.isCreativePlus(player);
 		if (NEClient.INSTANCE.keyDeleteItem.isPressed()) {
 			if (cp && !player.getMainHandStack().isEmpty()) {
-				new MessageDeleteSlot(82+player.inventory.selectedSlot).sendToServer();
+				new MessageDeleteSlot(player.inventory.selectedSlot+36).sendToServer();
 			}
 		}
 		for (Map.Entry<Ability, KeyBinding> en : NEClient.INSTANCE.abilityKeys.entrySet()) {
@@ -107,21 +103,6 @@ public class MixinMinecraftClient {
 		}
 		if (AbilityCheck.enabled(player, Ability.INSTABREAK)) {
 			((AccessorClientPlayerInteractionManager)interactionManager).nec$setBlockBreakingCooldown(0);
-		}
-	}
-	
-	@Inject(at=@At("HEAD"), method="doItemPick()V", cancellable=true)
-	public void doItemPick(CallbackInfo ci) {
-		if (NotEnoughCreativity.isCreativePlus(player)) {
-			HitResult hr = crosshairTarget;
-			if (hr != null) {
-				if (hr instanceof BlockHitResult) {
-					new MessagePickBlock(((BlockHitResult)hr).getBlockPos(), (float)hr.getPos().x, (float)hr.getPos().y, (float)hr.getPos().z, ((BlockHitResult) hr).getSide(), Screen.hasControlDown()).sendToServer();
-				} else if (hr instanceof EntityHitResult) {
-					new MessagePickEntity(((EntityHitResult)hr).getEntity().getEntityId(), (float)hr.getPos().x, (float)hr.getPos().y, (float)hr.getPos().z, Screen.hasControlDown()).sendToServer();
-				}
-			}
-			ci.cancel();
 		}
 	}
 	

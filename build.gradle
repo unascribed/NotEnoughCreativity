@@ -12,6 +12,12 @@ group = project.maven_group
 
 repositories {
 	jcenter()
+    maven {
+        url "https://maven.jamieswhiteshirt.com/libs-release"
+        content {
+            includeGroup "com.jamieswhiteshirt"
+        }
+    }
 }
 
 dependencies {
@@ -25,6 +31,8 @@ dependencies {
 	modApi "me.shedaniel:RoughlyEnoughItems:5.8.10"
 	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api:5.8.10"
 	modRuntime "me.shedaniel:RoughlyEnoughItems-api:5.8.10"
+	
+	modImplementation "com.jamieswhiteshirt:reach-entity-attributes:1.1.1"
 }
 
 minecraft {

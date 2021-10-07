@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-import com.unascribed.notenoughcreativity.CreativePlusScreenHandler;
+import com.unascribed.notenoughcreativity.client.CreativePlusScreen;
 
 import com.google.common.collect.Sets;
 
@@ -26,11 +26,11 @@ public class MixinSpriteAtlasTexture {
 	public Set<Identifier> modifySprites(Set<Identifier> orig) {
 		if (SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE.equals(id)) {
 			Set<Identifier> copy = Sets.newHashSet(orig);
-			copy.add(CreativePlusScreenHandler.DARK_EMPTY_HELMET_SLOT_TEXTURE);
-			copy.add(CreativePlusScreenHandler.DARK_EMPTY_CHESTPLATE_SLOT_TEXTURE);
-			copy.add(CreativePlusScreenHandler.DARK_EMPTY_LEGGINGS_SLOT_TEXTURE);
-			copy.add(CreativePlusScreenHandler.DARK_EMPTY_BOOTS_SLOT_TEXTURE);
-			copy.add(CreativePlusScreenHandler.DARK_EMPTY_OFFHAND_SLOT_TEXTURE);
+			copy.add(CreativePlusScreen.DARK_EMPTY_HELMET_SLOT_TEXTURE);
+			copy.add(CreativePlusScreen.DARK_EMPTY_CHESTPLATE_SLOT_TEXTURE);
+			copy.add(CreativePlusScreen.DARK_EMPTY_LEGGINGS_SLOT_TEXTURE);
+			copy.add(CreativePlusScreen.DARK_EMPTY_BOOTS_SLOT_TEXTURE);
+			copy.add(CreativePlusScreen.DARK_EMPTY_OFFHAND_SLOT_TEXTURE);
 			return copy;
 		}
 		return orig;

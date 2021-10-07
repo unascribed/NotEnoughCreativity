@@ -16,6 +16,7 @@ import com.unascribed.notenoughcreativity.CreativePlusScreenHandler;
 import com.unascribed.notenoughcreativity.LoaderHandler;
 import com.unascribed.notenoughcreativity.NEClient;
 import com.unascribed.notenoughcreativity.mixin.AccessorFocusedSlot;
+import com.unascribed.notenoughcreativity.mixin.AccessorPlayerScreenHandler;
 import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
 import com.unascribed.notenoughcreativity.network.MessageSetAbility;
 
@@ -29,6 +30,7 @@ import net.minecraft.client.options.KeyBinding;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
@@ -41,6 +43,15 @@ import net.minecraft.util.Pair;
 public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler> implements CPSAccess {
 
 	private static final Identifier BG = new Identifier("notenoughcreativity", "textures/gui/inventory.png");
+	
+	public static final Identifier DARK_EMPTY_HELMET_SLOT_TEXTURE = new Identifier("notenoughcreativity", "gui/empty_armor_slot_helmet");
+	public static final Identifier DARK_EMPTY_CHESTPLATE_SLOT_TEXTURE = new Identifier("notenoughcreativity", "gui/empty_armor_slot_chestplate");
+	public static final Identifier DARK_EMPTY_LEGGINGS_SLOT_TEXTURE = new Identifier("notenoughcreativity", "gui/empty_armor_slot_leggings");
+	public static final Identifier DARK_EMPTY_BOOTS_SLOT_TEXTURE = new Identifier("notenoughcreativity", "gui/empty_armor_slot_boots");
+	public static final Identifier DARK_EMPTY_OFFHAND_SLOT_TEXTURE = new Identifier("notenoughcreativity", "gui/empty_armor_slot_shield");
+	
+	public static final Identifier[] ARMOR_TEX = AccessorPlayerScreenHandler.nec$getEmptyArmorSlotTextures().clone();
+	public static final Identifier[] DARK_ARMOR_TEX = new Identifier[]{DARK_EMPTY_BOOTS_SLOT_TEXTURE, DARK_EMPTY_LEGGINGS_SLOT_TEXTURE, DARK_EMPTY_CHESTPLATE_SLOT_TEXTURE, DARK_EMPTY_HELMET_SLOT_TEXTURE};
 	
 	private final List<GuiParticle> particles = Lists.newArrayList();
 	
@@ -57,7 +68,7 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 		this.container = handler;
 		backgroundWidthAddn = 52;
 		backgroundHeightAddn = 162;
-		backgroundWidth = 198;
+		backgroundWidth = 199;
 		backgroundHeight = 212;
 	}
 	
@@ -110,62 +121,87 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 	
 	@Override
 	public void render(MatrixStack matrices, int mouseX, int mouseY, float partialTicks) {
-		renderBackground(matrices);
-		super.render(matrices, mouseX, mouseY, partialTicks);
-		hoveredAbility = null;
-		
-		int x = this.x+backgroundWidth-18;
-		int y = this.y+4;
-		client.getTextureManager().bindTexture(BG);
-		GlStateManager.disableLighting();
-		for (Ability a : Ability.VALUES_SORTED) {
-			fill(matrices, x, y, x+11, y+11, 0xFF000000);
-			if (AbilityCheck.enabled(client.player, a)) {
-				GlStateManager.color4f(1, 1, 0, 1);
-			} else {
-				GlStateManager.color4f(0.5f, 0.5f, 0.5f, 1);
-			}
-			drawTexture(matrices, x+1, y+1, 251+(a.ordinal()*9), 0, 9, 9, 384, 384);
-			if (AbilityCheck.enabled(client.player, a)) {
-				GlStateManager.color4f(1, 1, 1, 0.2f);
-				ThreadLocalRandom r = ThreadLocalRandom.current();
-				GlStateManager.enableBlend();
-				GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-				GlStateManager.disableAlphaTest();
-				for (int i = 0; i < 6; i++) {
-					GlStateManager.pushMatrix();
-					GlStateManager.translatef(r.nextFloat()-r.nextFloat(), r.nextFloat()-r.nextFloat(), 0);
-					drawTexture(matrices, x+1, y+1, 251+(a.ordinal()*9), 0, 9, 9, 384, 384);
-					GlStateManager.popMatrix();
+		Identifier origHelmet = PlayerScreenHandler.EMPTY_HELMET_SLOT_TEXTURE;
+		Identifier origChest = PlayerScreenHandler.EMPTY_CHESTPLATE_SLOT_TEXTURE;
+		Identifier origLegs = PlayerScreenHandler.EMPTY_LEGGINGS_SLOT_TEXTURE;
+		Identifier origBoots = PlayerScreenHandler.EMPTY_BOOTS_SLOT_TEXTURE;
+		Identifier origOffhand = PlayerScreenHandler.EMPTY_OFFHAND_ARMOR_SLOT;
+		boolean dark = AbilityCheck.enabled(client.player, Ability.DARKMODE);
+		if (dark) {
+			PlayerScreenHandler.EMPTY_HELMET_SLOT_TEXTURE = DARK_EMPTY_HELMET_SLOT_TEXTURE;
+			PlayerScreenHandler.EMPTY_CHESTPLATE_SLOT_TEXTURE = DARK_EMPTY_CHESTPLATE_SLOT_TEXTURE;
+			PlayerScreenHandler.EMPTY_LEGGINGS_SLOT_TEXTURE = DARK_EMPTY_LEGGINGS_SLOT_TEXTURE;
+			PlayerScreenHandler.EMPTY_BOOTS_SLOT_TEXTURE = DARK_EMPTY_BOOTS_SLOT_TEXTURE;
+			PlayerScreenHandler.EMPTY_OFFHAND_ARMOR_SLOT = DARK_EMPTY_OFFHAND_SLOT_TEXTURE;
+			System.arraycopy(DARK_ARMOR_TEX, 0, AccessorPlayerScreenHandler.nec$getEmptyArmorSlotTextures(), 0, DARK_ARMOR_TEX.length);
+		}
+		try {
+			renderBackground(matrices);
+			super.render(matrices, mouseX, mouseY, partialTicks);
+			hoveredAbility = null;
+			
+			int x = this.x+backgroundWidth-18;
+			int y = this.y+4;
+			client.getTextureManager().bindTexture(BG);
+			GlStateManager.disableLighting();
+			for (Ability a : Ability.VALUES_SORTED) {
+				fill(matrices, x, y, x+11, y+11, 0xFF000000);
+				if (AbilityCheck.enabled(client.player, a)) {
+					GlStateManager.color4f(1, 1, 0, 1);
+				} else {
+					GlStateManager.color4f(0.5f, 0.5f, 0.5f, 1);
 				}
-				GlStateManager.enableAlphaTest();
+				drawTexture(matrices, x+1, y+1, 251+(a.ordinal()*9), 0, 9, 9, 384, 384);
+				if (AbilityCheck.enabled(client.player, a)) {
+					GlStateManager.color4f(1, 1, 1, 0.2f);
+					ThreadLocalRandom r = ThreadLocalRandom.current();
+					GlStateManager.enableBlend();
+					GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+					GlStateManager.disableAlphaTest();
+					for (int i = 0; i < 6; i++) {
+						GlStateManager.pushMatrix();
+						GlStateManager.translatef(r.nextFloat()-r.nextFloat(), r.nextFloat()-r.nextFloat(), 0);
+						drawTexture(matrices, x+1, y+1, 251+(a.ordinal()*9), 0, 9, 9, 384, 384);
+						GlStateManager.popMatrix();
+					}
+					GlStateManager.enableAlphaTest();
+				}
+				if (mouseX >= x && mouseX < x+11 && mouseY >= y && mouseY < y+11) {
+					hoveredAbility = a;
+				}
+				x -= 12;
 			}
-			if (mouseX >= x && mouseX < x+11 && mouseY >= y && mouseY < y+11) {
-				hoveredAbility = a;
+			
+			GlStateManager.disableTexture();
+			GlStateManager.enableBlend();
+			GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+			GlStateManager.disableAlphaTest();
+			for (GuiParticle gp : particles) {
+				gp.render(partialTicks);
 			}
-			x -= 12;
-		}
-		
-		GlStateManager.disableTexture();
-		GlStateManager.enableBlend();
-		GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-		GlStateManager.disableAlphaTest();
-		for (GuiParticle gp : particles) {
-			gp.render(partialTicks);
-		}
-		GlStateManager.enableTexture();
-		GlStateManager.enableAlphaTest();
-		Slot foc = ((AccessorFocusedSlot)this).nec$getFocusedSlot();
-		if (foc == container.deleteSlot) {
-			renderTooltip(matrices, new TranslatableText("inventory.binSlot"), mouseX, mouseY);
-		} else if (foc == container.returnSlot) {
-			renderTooltip(matrices, new TranslatableText("notenoughcreativity.exit"), mouseX, mouseY);
-		} else if (hoveredAbility != null) {
-			List<OrderedText> li = Lists.newArrayList(textRenderer.wrapLines(StringVisitable.plain((AbilityCheck.enabled(client.player, hoveredAbility) ? "§e" : "")+I18n.translate("notenoughcreativity.ability."+(hoveredAbility.name().toLowerCase(Locale.ROOT))+".name")), 200));
-			li.addAll(textRenderer.wrapLines(StringVisitable.plain("§7"+I18n.translate("notenoughcreativity.ability."+(hoveredAbility.name().toLowerCase(Locale.ROOT))+".desc")), 200));
-			renderOrderedTooltip(matrices, li, mouseX, mouseY);
-		} else {
-			drawMouseoverTooltip(matrices, mouseX, mouseY);
+			GlStateManager.enableTexture();
+			GlStateManager.enableAlphaTest();
+			Slot foc = ((AccessorFocusedSlot)this).nec$getFocusedSlot();
+			if (foc == container.deleteSlot) {
+				renderTooltip(matrices, new TranslatableText("inventory.binSlot"), mouseX, mouseY);
+			} else if (foc == container.returnSlot) {
+				renderTooltip(matrices, new TranslatableText("notenoughcreativity.exit"), mouseX, mouseY);
+			} else if (hoveredAbility != null) {
+				List<OrderedText> li = Lists.newArrayList(textRenderer.wrapLines(StringVisitable.plain((AbilityCheck.enabled(client.player, hoveredAbility) ? "§e" : "")+I18n.translate("notenoughcreativity.ability."+(hoveredAbility.name().toLowerCase(Locale.ROOT))+".name")), 200));
+				li.addAll(textRenderer.wrapLines(StringVisitable.plain("§7"+I18n.translate("notenoughcreativity.ability."+(hoveredAbility.name().toLowerCase(Locale.ROOT))+".desc")), 200));
+				renderOrderedTooltip(matrices, li, mouseX, mouseY);
+			} else {
+				drawMouseoverTooltip(matrices, mouseX, mouseY);
+			}
+		} finally {
+			if (dark) {
+				PlayerScreenHandler.EMPTY_HELMET_SLOT_TEXTURE = origHelmet;
+				PlayerScreenHandler.EMPTY_CHESTPLATE_SLOT_TEXTURE = origChest;
+				PlayerScreenHandler.EMPTY_LEGGINGS_SLOT_TEXTURE = origLegs;
+				PlayerScreenHandler.EMPTY_BOOTS_SLOT_TEXTURE = origBoots;
+				PlayerScreenHandler.EMPTY_OFFHAND_ARMOR_SLOT = origOffhand;
+				System.arraycopy(ARMOR_TEX, 0, AccessorPlayerScreenHandler.nec$getEmptyArmorSlotTextures(), 0, ARMOR_TEX.length);
+			}
 		}
 	}
 	
@@ -252,7 +288,6 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 			case ATTACK: sound = SoundEvents.BLOCK_NOTE_BLOCK_XYLOPHONE; break;
 			case HEALTH: sound = SoundEvents.BLOCK_NOTE_BLOCK_HAT; break;
 			case INSTABREAK: sound = SoundEvents.BLOCK_NOTE_BLOCK_BASEDRUM; break;
-			case PICKSWAP: sound = SoundEvents.BLOCK_NOTE_BLOCK_BASS; break;
 			case NIGHTVISION: sound = SoundEvents.BLOCK_END_PORTAL_FRAME_FILL; break;
 			case NOCLIP: sound = SoundEvents.ENTITY_EVOKER_CAST_SPELL; break;
 			case DARKMODE: sound = SoundEvents.BLOCK_NOTE_BLOCK_BELL; break;

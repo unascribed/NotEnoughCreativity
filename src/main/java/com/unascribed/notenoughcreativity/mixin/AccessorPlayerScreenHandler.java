@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.screen.PlayerScreenHandler;
+import net.minecraft.util.Identifier;
 
 @Mixin(PlayerScreenHandler.class)
 public interface AccessorPlayerScreenHandler {
@@ -17,5 +18,8 @@ public interface AccessorPlayerScreenHandler {
 	
 	@Accessor("craftingResult")
 	CraftingResultInventory nec$getCraftingResult();
+	
+	@Accessor("EMPTY_ARMOR_SLOT_TEXTURES")
+	static Identifier[] nec$getEmptyArmorSlotTextures() { throw new AbstractMethodError(); }
 	
 }

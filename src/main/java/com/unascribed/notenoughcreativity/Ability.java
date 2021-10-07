@@ -11,7 +11,6 @@ public enum Ability {
 	ATTACK(0),
 	HEALTH(0),
 	INSTABREAK(0),
-	PICKSWAP(0),
 	NIGHTVISION(0),
 	NOCLIP(0),
 	DARKMODE(-1),
@@ -26,7 +25,7 @@ public enum Ability {
 	
 	private int index = -1;
 	
-	private Ability(int weight) {
+	Ability(int weight) {
 		this.weight = weight;
 	}
 	

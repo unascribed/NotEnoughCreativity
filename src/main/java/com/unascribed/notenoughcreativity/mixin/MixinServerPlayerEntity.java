@@ -13,8 +13,11 @@ import com.unascribed.notenoughcreativity.NotEnoughCreativity;
 
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -32,9 +35,8 @@ public abstract class MixinServerPlayerEntity extends PlayerEntity {
 	
 	@Inject(at=@At("HEAD"), method="onDeath(Lnet/minecraft/entity/damage/DamageSource;)V", cancellable=true)
 	public void onDeath(DamageSource src, CallbackInfo ci) {
-		PlayerEntity self = (PlayerEntity)this;
+		PlayerEntity self = this;
 		if (AbilityCheck.enabled(self, Ability.HEALTH) && !src.isOutOfWorld()) {
-			System.out.println("no death allowed");
 			self.setHealth(0.1f);
 			ci.cancel();
 		}
@@ -59,6 +61,11 @@ public abstract class MixinServerPlayerEntity extends PlayerEntity {
 	@Inject(at=@At("TAIL"), method="worldChanged(Lnet/minecraft/server/world/ServerWorld;)V")
 	public void worldChanged(ServerWorld world, CallbackInfo ci) {
 		NotEnoughCreativity.updateInventory(this);
+	}
+	
+	@Inject(at=@At("HEAD"), method="onHandlerRegistered(Lnet/minecraft/screen/ScreenHandler;Lnet/minecraft/util/collection/DefaultedList;)V")
+	public void onHandlerRegistered(ScreenHandler handler, DefaultedList<ItemStack> stacks, CallbackInfo ci) {
+		
 	}
 	
 }

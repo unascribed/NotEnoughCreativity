@@ -1,17 +1,9 @@
 package com.unascribed.notenoughcreativity;
 
-import java.util.List;
-
-import com.mojang.datafixers.util.Pair;
 import com.unascribed.notenoughcreativity.mixin.AccessorPlayerScreenHandler;
-import com.unascribed.notenoughcreativity.mixin.AccessorScreenHandler;
+import com.unascribed.notenoughcreativity.mixin.AccessorSlot;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.inventory.Inventory;
@@ -19,39 +11,20 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.util.Identifier;
 
 public class CreativePlusScreenHandler extends PlayerScreenHandler implements CPSHAccess {
 
-	public static final Identifier DARK_EMPTY_HELMET_SLOT_TEXTURE = new Identifier("notenoughcreativity", "gui/empty_armor_slot_helmet");
-	public static final Identifier DARK_EMPTY_CHESTPLATE_SLOT_TEXTURE = new Identifier("notenoughcreativity", "gui/empty_armor_slot_chestplate");
-	public static final Identifier DARK_EMPTY_LEGGINGS_SLOT_TEXTURE = new Identifier("notenoughcreativity", "gui/empty_armor_slot_leggings");
-	public static final Identifier DARK_EMPTY_BOOTS_SLOT_TEXTURE = new Identifier("notenoughcreativity", "gui/empty_armor_slot_boots");
-	public static final Identifier DARK_EMPTY_OFFHAND_SLOT_TEXTURE = new Identifier("notenoughcreativity", "gui/empty_armor_slot_shield");
-	
-	private static final Identifier[] ARMOR_TEX = new Identifier[]{EMPTY_BOOTS_SLOT_TEXTURE, EMPTY_LEGGINGS_SLOT_TEXTURE, EMPTY_CHESTPLATE_SLOT_TEXTURE, EMPTY_HELMET_SLOT_TEXTURE};
-	private static final Identifier[] DARK_ARMOR_TEX = new Identifier[]{DARK_EMPTY_BOOTS_SLOT_TEXTURE, DARK_EMPTY_LEGGINGS_SLOT_TEXTURE, DARK_EMPTY_CHESTPLATE_SLOT_TEXTURE, DARK_EMPTY_HELMET_SLOT_TEXTURE};
-	
 	private final PlayerEntity player;
 	
 	public final Inventory mirror;
 	
 	public Slot deleteSlot, returnSlot;
 	
-	private boolean fastbench = false;
 	private CraftingInventory craftingInput;
 	private CraftingResultInventory craftingResult;
 	
 	public CreativePlusScreenHandler(PlayerEntity player) {
 		super(player.inventory, !player.world.isClient, player);
-		// FastWorkbench may have replaced the result slot, so keep it
-		clearExcFirst(slots);
-		clearExcFirst(((AccessorScreenHandler)this).nec$getTrackedStacks());
-		
-		Slot resSlot = slots.get(0);
-		resSlot.x = 9;
-		resSlot.y = 130;
-		
 		craftingInput = ((AccessorPlayerScreenHandler)this).nec$getCraftingInput();
 		craftingResult = ((AccessorPlayerScreenHandler)this).nec$getCraftingResult();
 		
@@ -61,60 +34,36 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 		
 		int bX = 31;
 		int bY = 18;
-		int invOfsY = 112;
 		
 		for (int y = 0; y < 6; y++) {
 			for (int x = 0; x < 9; x++) {
 				addSlot(new Slot(mirror, x + y * 9, bX + x * 18, bY + y * 18));
 			}
 		}
-
-		PlayerInventory playerInv = player.inventory;
-		for (int y = 0; y < 3; y++) {
-			for (int x = 0; x < 9; x++) {
-				addSlot(new Slot(playerInv, x + y * 9 + 9, bX + x * 18, bY + invOfsY + y * 18));
+		
+		for (Slot s : slots) {
+			if (s.inventory == player.inventory) {
+				if (s.getClass() == Slot.class) {
+					// normal inventory
+					s.x += 23;
+					s.y += 46;
+				} else if (((AccessorSlot)s).nec$getIndex() == 40) {
+					// offhand
+					s.x = 9;
+					s.y = 90;
+				} else {
+					// armor
+					s.x -= 52;
+					s.y += 10;
+				}
+			} else if (s.inventory == craftingInput) {
+				s.x -= 142;
+				s.y += 102;
+			} else if (s.inventory == craftingResult) {
+				s.x = 9;
+				s.y = 130;
 			}
 		}
-
-		for (int i = 0; i < 9; i++) {
-			addSlot(new Slot(playerInv, i, bX + i * 18, bY + invOfsY + 58));
-		}
-		
-		for (int y = 0; y < 2; ++y) {
-			for (int x = 0; x < 2; ++x) {
-				addSlot(new Slot(craftingInput, x + y * 2, -44 + x * 18, 120 + y * 18));
-			}
-		}
-		
-		EquipmentSlot[] equipmentSlots = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
-		for (int k = 0; k < 4; ++k) {
-			EquipmentSlot es = equipmentSlots[k];
-			addSlot(new Slot(playerInv, 36 + (3 - k), -44, 18 + k * 18) {
-				@Override
-				public int getMaxItemCount() {
-					return 1;
-				}
-				@Override
-				public boolean canInsert(ItemStack stack) {
-					return MobEntity.getPreferredEquipmentSlot(stack) == es;
-				}
-				@Override
-				@Environment(EnvType.CLIENT)
-				public Pair<Identifier, Identifier> getBackgroundSprite() {
-					return Pair.of(BLOCK_ATLAS_TEXTURE,
-							(AbilityCheck.enabled(player, Ability.DARKMODE) ? DARK_ARMOR_TEX : ARMOR_TEX)[es.getEntitySlotId()]);
-				}
-			});
-		}
-		
-		addSlot(new Slot(playerInv, 40, 9, 90) {
-			@Override
-			@Environment(EnvType.CLIENT)
-			public Pair<Identifier, Identifier> getBackgroundSprite() {
-				return Pair.of(BLOCK_ATLAS_TEXTURE,
-						AbilityCheck.enabled(player, Ability.DARKMODE) ? DARK_EMPTY_OFFHAND_SLOT_TEXTURE : EMPTY_OFFHAND_ARMOR_SLOT);
-			}
-		});
 		
 		addSlot(deleteSlot = new Slot(null, 40, 9, 188) {
 			@Override
@@ -173,11 +122,6 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 			}
 			
 		});
-	}
-	
-	private void clearExcFirst(List<?> li) {
-		if (li.size() <= 1) return;
-		li.subList(1, li.size()).clear();
 	}
 
 	@Override

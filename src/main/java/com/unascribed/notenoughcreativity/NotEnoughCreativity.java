@@ -4,8 +4,6 @@ import com.unascribed.notenoughcreativity.network.MessageAbilities;
 import com.unascribed.notenoughcreativity.network.MessageDeleteSlot;
 import com.unascribed.notenoughcreativity.network.MessageEnabled;
 import com.unascribed.notenoughcreativity.network.MessageOtherNoclipping;
-import com.unascribed.notenoughcreativity.network.MessagePickBlock;
-import com.unascribed.notenoughcreativity.network.MessagePickEntity;
 import com.unascribed.notenoughcreativity.network.MessageRecallPosition;
 import com.unascribed.notenoughcreativity.network.MessageSavePosition;
 import com.unascribed.notenoughcreativity.network.MessageSetAbility;
@@ -22,7 +20,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
@@ -44,8 +41,6 @@ public class NotEnoughCreativity implements ModInitializer {
 		network.register(MessageSetAbility.class);
 		network.register(MessageAbilities.class);
 		network.register(MessageDeleteSlot.class);
-		network.register(MessagePickBlock.class);
-		network.register(MessagePickEntity.class);
 		network.register(MessageOtherNoclipping.class);
 		network.register(MessageSavePosition.class);
 		network.register(MessageRecallPosition.class);
@@ -59,6 +54,12 @@ public class NotEnoughCreativity implements ModInitializer {
 	
 	public static void updateInventory(PlayerEntity player) {
 		boolean enabled = isCreativePlus(player);
+		if (!player.world.isClient) {
+			new MessageEnabled(enabled).sendTo(player);
+			if (enabled) {
+				new MessageAbilities(((NECPlayer)player).nec$getEnabledAbilities()).sendTo(player);
+			}
+		}
 		PlayerScreenHandler orig = player.playerScreenHandler;
 		PlayerScreenHandler nw;
 		if (enabled) {
@@ -68,26 +69,13 @@ public class NotEnoughCreativity implements ModInitializer {
 			if (!(orig instanceof CreativePlusScreenHandler)) return;
 			nw = new PlayerScreenHandler(player.inventory, !player.world.isClient, player);
 		}
-		if (!player.world.isClient) {
-			new MessageEnabled(enabled).sendTo(player);
-			if (enabled) {
-				new MessageAbilities(((NECPlayer)player).nec$getEnabledAbilities()).sendTo(player);
-			}
-		}
 		player.playerScreenHandler = nw;
 		if (orig == player.currentScreenHandler) {
 			player.currentScreenHandler = nw;
 		}
-		// technically this is wrong but FastWorkbench listens for this despite the fact Forge
-		// doesn't fire this event for the player container
-		ForgeHandler.firePlayerContainerOpen(player);
 		if (player instanceof ScreenHandlerListener) {
 			nw.addListener((ScreenHandlerListener)player);
 		}
-	}
-
-	public static void pickBlock(PlayerEntity player, HitResult target, boolean exact) {
-		PickBlockHandler.pickBlock(player, target, exact);
 	}
 
 	public static void teleportWithEffects(ServerPlayerEntity player, ServerWorld target, Vec3d pos) {
