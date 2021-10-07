@@ -56,9 +56,9 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
 			if (NEClient.INSTANCE.keyDown.isPressed() || (sneakIsDown && input.sneaking)) movementWorldspaceUp--;
 			if (NEClient.INSTANCE.keyUp.isPressed() || (jumpIsUp && input.jumping)) movementWorldspaceUp++;
 			vec = vec.add(new Vec3d(0, 1, 0).multiply(movementWorldspaceUp));
-			double speed = 1;
+			double speed = 0.5;
 			if (mc.options.keySprint.isPressed()) {
-				speed *= 2;
+				speed *= 3;
 			}
 			if (AbilityCheck.enabled(this, Ability.SUPER_SPEED)) {
 				speed *= 4;
