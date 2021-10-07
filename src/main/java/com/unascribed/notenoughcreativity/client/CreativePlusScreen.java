@@ -53,6 +53,8 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 	public static final Identifier[] ARMOR_TEX = AccessorPlayerScreenHandler.nec$getEmptyArmorSlotTextures().clone();
 	public static final Identifier[] DARK_ARMOR_TEX = new Identifier[]{DARK_EMPTY_BOOTS_SLOT_TEXTURE, DARK_EMPTY_LEGGINGS_SLOT_TEXTURE, DARK_EMPTY_CHESTPLATE_SLOT_TEXTURE, DARK_EMPTY_HELMET_SLOT_TEXTURE};
 	
+	private static final boolean DISABLE_PARTICLES = Boolean.getBoolean("notenoughcreativity.disableGuiParticles");
+	
 	private final List<GuiParticle> particles = Lists.newArrayList();
 	
 	private final CreativePlusScreenHandler container;
@@ -219,8 +221,7 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 		}
 		int x = this.x+backgroundWidth-18;
 		int y = this.y+4;
-		client.getTextureManager().bindTexture(BG);
-		GlStateManager.disableLighting();
+		if (DISABLE_PARTICLES) return;
 		for (Ability a : Ability.VALUES_SORTED) {
 			if (AbilityCheck.enabled(client.player, a) && Math.random() < 0.2) {
 				GuiParticle gp = new GuiParticle(x+2+(Math.random()*7), y+2+(Math.random()*7));
