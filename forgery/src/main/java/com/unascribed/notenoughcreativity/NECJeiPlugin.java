@@ -18,7 +18,7 @@ public class NECJeiPlugin implements IModPlugin {
 	@Override
 	public void registerGuiHandlers(IGuiHandlerRegistration registry) {
 		try {
-			registry.addGuiContainerHandler((Class)Class.forName("com.unascribed.notenoughcreativity.CreativePlusScreenHandler"), new IGuiContainerHandler<ContainerScreen<?>>() {
+			registry.addGuiContainerHandler((Class)Class.forName("com.unascribed.notenoughcreativity.client.CreativePlusScreen"), new IGuiContainerHandler<ContainerScreen<?>>() {
 
 				@Override
 				public List<Rectangle2d> getGuiExtraAreas(ContainerScreen<?> g) {
