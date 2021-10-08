@@ -139,24 +139,38 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 			result = stack.copy();
 			// crafting output
 			if (index == 0) {
-				if (!insertItem(stack, 1, 91, true)) {
+				// main inventory
+				if (!insertItem(stack, 9, 45, true)) {
+					return ItemStack.EMPTY;
+				}
+				// mirror inventory
+				if (!insertItem(stack, 46, 100, true)) {
 					return ItemStack.EMPTY;
 				}
 
 				slot.onStackChanged(stack, result);
 			} else {
 				// not armor slots
-				if (index < 95 || index > 98) {
-					insertItem(stack, 95, 99, false);
+				if (index > 8) {
+					insertItem(stack, 5, 9, false);
 				}
 				if (slot.inventory == mirror) {
-					if (!insertItem(stack, 82, 91, false)) {
-						if (!insertItem(stack, 55, 82, false))
+					// go from mirror to hotbar
+					if (!insertItem(stack, 36, 45, false)) {
+						// or main inventory
+						if (!insertItem(stack, 9, 36, false))
 							return ItemStack.EMPTY;
 					}
-				} else {
-					if (!insertItem(stack, 1, 55, false))
+				} else if (index > 8 || index < 5) {
+					// elsewhere to mirror
+					if (!insertItem(stack, 46, 100, false)) {
 						return ItemStack.EMPTY;
+					}
+				} else {
+					// armor to anywhere
+					if (!insertItem(stack, 9, 100, false)) {
+						return ItemStack.EMPTY;
+					}
 				}
 			}
 			if (stack.isEmpty()) {
