@@ -8,6 +8,9 @@
 	echo
 	canforgery=0
 #fi
+if [ -n "$JAVA16_HOME" ]; then
+        export JAVA_HOME=$JAVA16_HOME
+fi
 rm -rf build/libs
 echo Building for Fabric...
 gw build
