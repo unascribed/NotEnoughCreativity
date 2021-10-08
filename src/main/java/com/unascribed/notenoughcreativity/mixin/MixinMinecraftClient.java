@@ -5,8 +5,8 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.client.options.GameOptions;
-import net.minecraft.client.options.KeyBinding;
+import net.minecraft.client.option.GameOptions;
+import net.minecraft.client.option.KeyBinding;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.hit.HitResult;
 
@@ -63,7 +63,7 @@ public class MixinMinecraftClient {
 		}
 	}
 	
-	@ModifyVariable(at=@At("HEAD"), method="openScreen(Lnet/minecraft/client/gui/screen/Screen;)V", index=1)
+	@ModifyVariable(at=@At("HEAD"), method="setScreen(Lnet/minecraft/client/gui/screen/Screen;)V", index=1)
 	public Screen modifyOpenScreen(Screen screen) {
 		if (screen instanceof CreativeInventoryScreen) {
 			if (NotEnoughCreativity.isCreativePlus(player)) {
@@ -78,7 +78,7 @@ public class MixinMinecraftClient {
 		boolean cp = NotEnoughCreativity.isCreativePlus(player);
 		if (NEClient.INSTANCE.keyDeleteItem.isPressed()) {
 			if (cp && !player.getMainHandStack().isEmpty()) {
-				new MessageDeleteSlot(player.inventory.selectedSlot+36).sendToServer();
+				new MessageDeleteSlot(player.getInventory().selectedSlot+36).sendToServer();
 			}
 		}
 		for (Map.Entry<Ability, KeyBinding> en : NEClient.INSTANCE.abilityKeys.entrySet()) {

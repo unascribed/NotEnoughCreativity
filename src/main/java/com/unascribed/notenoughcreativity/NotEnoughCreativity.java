@@ -49,7 +49,7 @@ public class NotEnoughCreativity implements ModInitializer {
 	}
 	
 	public static boolean isCreativePlus(PlayerEntity ep) {
-		return ep != null && ep.abilities.creativeMode && ep instanceof NECPlayer && ((NECPlayer)ep).nec$isCreativePlusEnabled();
+		return ep != null && ep.getAbilities().creativeMode && ep instanceof NECPlayer && ((NECPlayer)ep).nec$isCreativePlusEnabled();
 	}
 	
 	public static void updateInventory(PlayerEntity player) {
@@ -67,7 +67,7 @@ public class NotEnoughCreativity implements ModInitializer {
 			nw = new CreativePlusScreenHandler(player);
 		} else {
 			if (!(orig instanceof CreativePlusScreenHandler)) return;
-			nw = new PlayerScreenHandler(player.inventory, !player.world.isClient, player);
+			nw = new PlayerScreenHandler(player.getInventory(), !player.world.isClient, player);
 		}
 		player.playerScreenHandler = nw;
 		if (orig == player.currentScreenHandler) {
@@ -86,7 +86,7 @@ public class NotEnoughCreativity implements ModInitializer {
 				40, box.getXLength(), box.getYLength(), box.getZLength(), 0);
 		src.spawnParticles(ParticleTypes.POOF, box.getCenter().x, box.getCenter().y, box.getCenter().z,
 				30, box.getXLength()/2, box.getYLength()/2, box.getZLength()/2, 0);
-		player.teleport(target, pos.x, pos.y, pos.z, player.yaw, player.pitch);
+		player.teleport(target, pos.x, pos.y, pos.z, player.getYaw(), player.getPitch());
 		player.setVelocity(vel);
 		player.velocityModified = true;
 		target.spawnParticles(ParticleTypes.WITCH, pos.x, pos.y+(player.getHeight()/2), pos.z,

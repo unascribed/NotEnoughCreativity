@@ -14,6 +14,54 @@ import net.minecraft.screen.slot.SlotActionType;
 
 public class CreativePlusScreenHandler extends PlayerScreenHandler implements CPSHAccess {
 
+	public static final Inventory DUMMY_INVENTORY = new Inventory() {
+		
+		@Override
+		public void clear() {
+			
+		}
+		
+		@Override
+		public int size() {
+			return 0;
+		}
+		
+		@Override
+		public void setStack(int slot, ItemStack stack) {
+			
+		}
+		
+		@Override
+		public ItemStack removeStack(int slot, int amount) {
+			return ItemStack.EMPTY;
+		}
+		
+		@Override
+		public ItemStack removeStack(int slot) {
+			return ItemStack.EMPTY;
+		}
+		
+		@Override
+		public void markDirty() {
+			
+		}
+		
+		@Override
+		public boolean isEmpty() {
+			return true;
+		}
+		
+		@Override
+		public ItemStack getStack(int slot) {
+			return ItemStack.EMPTY;
+		}
+		
+		@Override
+		public boolean canPlayerUse(PlayerEntity player) {
+			return false;
+		}
+	};
+	
 	private final PlayerEntity player;
 	
 	public final Inventory mirror;
@@ -24,7 +72,7 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 	private CraftingResultInventory craftingResult;
 	
 	public CreativePlusScreenHandler(PlayerEntity player) {
-		super(player.inventory, !player.world.isClient, player);
+		super(player.getInventory(), !player.world.isClient, player);
 		craftingInput = ((AccessorPlayerScreenHandler)this).nec$getCraftingInput();
 		craftingResult = ((AccessorPlayerScreenHandler)this).nec$getCraftingResult();
 		
@@ -42,7 +90,7 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 		}
 		
 		for (Slot s : slots) {
-			if (s.inventory == player.inventory) {
+			if (s.inventory == player.getInventory()) {
 				if (s.getClass() == Slot.class) {
 					// normal inventory
 					s.x += 23;
@@ -65,7 +113,7 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 			}
 		}
 		
-		addSlot(deleteSlot = new Slot(null, 40, 9, 188) {
+		addSlot(deleteSlot = new Slot(DUMMY_INVENTORY, 40, 9, 188) {
 			@Override
 			public void setStack(ItemStack stack) {
 				// delete it
@@ -92,7 +140,7 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 			
 		});
 		
-		addSlot(returnSlot = new Slot(null, 80, 9, 166) {
+		addSlot(returnSlot = new Slot(DUMMY_INVENTORY, 80, 9, 166) {
 			@Override
 			public void setStack(ItemStack stack) {
 			}
@@ -139,24 +187,38 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 			result = stack.copy();
 			// crafting output
 			if (index == 0) {
-				if (!insertItem(stack, 1, 91, true)) {
+				// main inventory
+				if (!insertItem(stack, 9, 45, true)) {
+					return ItemStack.EMPTY;
+				}
+				// mirror inventory
+				if (!insertItem(stack, 46, 100, true)) {
 					return ItemStack.EMPTY;
 				}
 
-				slot.onStackChanged(stack, result);
+				slot.onQuickTransfer(stack, result);
 			} else {
 				// not armor slots
-				if (index < 95 || index > 98) {
-					insertItem(stack, 95, 99, false);
+				if (index > 8) {
+					insertItem(stack, 5, 9, false);
 				}
 				if (slot.inventory == mirror) {
-					if (!insertItem(stack, 82, 91, false)) {
-						if (!insertItem(stack, 55, 82, false))
+					// go from mirror to hotbar
+					if (!insertItem(stack, 36, 45, false)) {
+						// or main inventory
+						if (!insertItem(stack, 9, 36, false))
 							return ItemStack.EMPTY;
 					}
-				} else {
-					if (!insertItem(stack, 1, 55, false))
+				} else if (index > 8 || index < 5) {
+					// elsewhere to mirror
+					if (!insertItem(stack, 46, 100, false)) {
 						return ItemStack.EMPTY;
+					}
+				} else {
+					// armor to anywhere
+					if (!insertItem(stack, 9, 100, false)) {
+						return ItemStack.EMPTY;
+					}
 				}
 			}
 			if (stack.isEmpty()) {
@@ -169,10 +231,10 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 				return ItemStack.EMPTY;
 			}
 
-			ItemStack remainder = slot.onTakeItem(player, stack);
+			slot.onTakeItem(player, stack);
 
 			if (index == 0) {
-				player.dropItem(remainder, false);
+				player.dropItem(stack, false);
 			}
 		}
 
@@ -180,21 +242,23 @@ public class CreativePlusScreenHandler extends PlayerScreenHandler implements CP
 	}
 	
 	@Override
-	public ItemStack onSlotClick(int slotId, int dragType, SlotActionType actionType, PlayerEntity player) {
+	public void onSlotClick(int slotId, int dragType, SlotActionType actionType, PlayerEntity player) {
 		if (slotId >= 0) {
 			Slot slot = getSlot(slotId);
 			if (slot == deleteSlot && actionType == SlotActionType.QUICK_MOVE) {
 				mirror.clear();
 				mirror.markDirty();
-				player.inventory.clear();
+				player.getInventory().clear();
 				craftingInput.clear();
 				craftingResult.clear();
+				return;
 			} else if (slot == returnSlot) {
 				((NECPlayer)player).nec$setCreativePlusEnabled(false);
 				NotEnoughCreativity.updateInventory(player);
+				return;
 			}
 		}
-		return super.onSlotClick(slotId, dragType, actionType, player);
+		super.onSlotClick(slotId, dragType, actionType, player);
 	}
 
 	@Override

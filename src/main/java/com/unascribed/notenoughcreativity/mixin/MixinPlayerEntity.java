@@ -28,9 +28,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.DoubleTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtDouble;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
@@ -62,25 +62,25 @@ public class MixinPlayerEntity implements NECPlayer {
 		if (AbilityCheck.enabled(self, Ability.NOCLIP)) {
 			self.noClip = true;
 			self.setOnGround(false);
-			self.abilities.flying = true;
+			self.getAbilities().flying = true;
 			if (nec$noclippers.add(self)) {
-				new MessageOtherNoclipping(self.getEntityId(), true).sendToAllWatching(self);
+				new MessageOtherNoclipping(self.getId(), true).sendToAllWatching(self);
 			}
 		} else {
 			if (nec$noclippers.remove(self)) {
-				new MessageOtherNoclipping(self.getEntityId(), false).sendToAllWatching(self);
+				new MessageOtherNoclipping(self.getId(), false).sendToAllWatching(self);
 			}
 		}
 		if (self.playerScreenHandler instanceof CreativePlusScreenHandler) {
 			ReachHandler.tick(self);
-			if (!self.abilities.creativeMode) {
+			if (!self.getAbilities().creativeMode) {
 				NotEnoughCreativity.updateInventory(self);
 			} else {
 				if (AbilityCheck.enabled(self, Ability.HEALTH)) {
-					self.abilities.invulnerable = false;
+					self.getAbilities().invulnerable = false;
 					self.getHungerManager().setFoodLevel(15);
-				} else if (!self.abilities.invulnerable) {
-					self.abilities.invulnerable = true;
+				} else if (!self.getAbilities().invulnerable) {
+					self.getAbilities().invulnerable = true;
 					self.setHealth(self.getMaxHealth());
 				}
 			}
@@ -104,36 +104,36 @@ public class MixinPlayerEntity implements NECPlayer {
 		}
 	}
 	
-	@Inject(at=@At("TAIL"), method="writeCustomDataToTag(Lnet/minecraft/nbt/CompoundTag;)V")
-	public void writeCustomDataToTag(CompoundTag tag, CallbackInfo ci) {
+	@Inject(at=@At("TAIL"), method="writeCustomDataToNbt(Lnet/minecraft/nbt/NbtCompound;)V")
+	public void writeCustomDataToNbt(NbtCompound tag, CallbackInfo ci) {
 		tag.putBoolean("notenoughcreativity:enabled", nec$creativePlusEnabled);
 		tag.putInt("notenoughcreativity:abilities", Ability.toBits(nec$enabledAbilities));
-		ListTag inv = new ListTag();
+		NbtList inv = new NbtList();
 		for (int i = 0; i < nec$inventory.size(); i++) {
 			ItemStack is = nec$inventory.getStack(i);
 			if (is.isEmpty()) continue;
-			CompoundTag entry = is.toTag(new CompoundTag());
+			NbtCompound entry = is.writeNbt(new NbtCompound());
 			entry.putByte("Slot", (byte) i);
 			inv.add(entry);
 		}
 		tag.put("notenoughcreativity:inventory", inv);
 		if (nec$savedPosition != null) {
-			ListTag li = new ListTag();
-			li.add(DoubleTag.of(nec$savedPosition.x));
-			li.add(DoubleTag.of(nec$savedPosition.y));
-			li.add(DoubleTag.of(nec$savedPosition.z));
+			NbtList li = new NbtList();
+			li.add(NbtDouble.of(nec$savedPosition.x));
+			li.add(NbtDouble.of(nec$savedPosition.y));
+			li.add(NbtDouble.of(nec$savedPosition.z));
 			tag.put("notenoughcreativity:saved_position", li);
 			tag.putString("notenoughcreativity:saved_dimension", nec$savedDimension.toString());
 		}
 	}
 	
-	@Inject(at=@At("TAIL"), method="readCustomDataFromTag(Lnet/minecraft/nbt/CompoundTag;)V")
-	public void readCustomDataFromTag(CompoundTag tag, CallbackInfo ci) {
+	@Inject(at=@At("TAIL"), method="readCustomDataFromNbt(Lnet/minecraft/nbt/NbtCompound;)V")
+	public void readCustomDataFromNbt(NbtCompound tag, CallbackInfo ci) {
 		boolean imported = false;
 		int enabledAbilitiesBits = 0;
-		ListTag inv = null;
+		NbtList inv = null;
 		if (tag.contains("ForgeData")) {
-			CompoundTag forgeData = tag.getCompound("ForgeData");
+			NbtCompound forgeData = tag.getCompound("ForgeData");
 			if (forgeData.contains("NotEnoughCreativity")) {
 				// import old data from the native 1.16 Forge version or 1.12 version
 				imported = true;
@@ -153,13 +153,13 @@ public class MixinPlayerEntity implements NECPlayer {
 		}
 		nec$inventory.clear();
 		for (int i = 0; i < inv.size(); i++) {
-			CompoundTag entry = inv.getCompound(i);
-			nec$inventory.setStack(entry.getInt("Slot"), ItemStack.fromTag(entry));
+			NbtCompound entry = inv.getCompound(i);
+			nec$inventory.setStack(entry.getInt("Slot"), ItemStack.fromNbt(entry));
 		}
 		nec$enabledAbilities.clear();
 		nec$enabledAbilities.addAll(Ability.fromBits(enabledAbilitiesBits));
 		if (tag.contains("notenoughcreativity:saved_position")) {
-			ListTag li = tag.getList("notenoughcreativity:saved_position", NbtType.LIST);
+			NbtList li = tag.getList("notenoughcreativity:saved_position", NbtType.LIST);
 			nec$savedPosition = new Vec3d(li.getDouble(0), li.getDouble(1), li.getDouble(2));
 			nec$savedDimension = Identifier.tryParse(tag.getString("notenoughcreativity:saved_dimension"));
 		} else {
@@ -168,19 +168,19 @@ public class MixinPlayerEntity implements NECPlayer {
 		}
 	}
 	
-	@Inject(at=@At("HEAD"), method="handleFallDamage(FF)Z")
-	public void handleFallDamageHead(float a, float b, CallbackInfoReturnable<Boolean> ci) {
+	@Inject(at=@At("HEAD"), method="handleFallDamage(FFLnet/minecraft/entity/damage/DamageSource;)Z")
+	public void handleFallDamageHead(float a, float b, DamageSource ds, CallbackInfoReturnable<Boolean> ci) {
 		PlayerEntity self = (PlayerEntity)(Object)this;
 		if (AbilityCheck.enabled(self, Ability.HEALTH)) {
-			self.abilities.allowFlying = false;
+			self.getAbilities().allowFlying = false;
 		}
 	}
 	
-	@Inject(at=@At("RETURN"), method="handleFallDamage(FF)Z")
-	public void handleFallDamageTail(float a, float b, CallbackInfoReturnable<Boolean> ci) {
+	@Inject(at=@At("RETURN"), method="handleFallDamage(FFLnet/minecraft/entity/damage/DamageSource;)Z")
+	public void handleFallDamageTail(float a, float b, DamageSource ds, CallbackInfoReturnable<Boolean> ci) {
 		PlayerEntity self = (PlayerEntity)(Object)this;
 		if (AbilityCheck.enabled(self, Ability.HEALTH)) {
-			self.abilities.allowFlying = true;
+			self.getAbilities().allowFlying = true;
 		}
 	}
 

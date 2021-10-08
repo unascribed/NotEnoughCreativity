@@ -28,19 +28,19 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
 	public void tickMovement(CallbackInfo ci) {
 		if (AbilityCheck.enabled(this, Ability.FREE_FLIGHT)) {
 			ci.cancel();
-			if (!this.abilities.flying) {
-				this.abilities.flying = true;
+			if (!this.getAbilities().flying) {
+				this.getAbilities().flying = true;
 				this.sendAbilitiesUpdate();
 			}
 			MinecraftClient mc = MinecraftClient.getInstance();
 			Input input = ((ClientPlayerEntity)(Object)this).input;
 			input.tick(false);
 			Vec3d vec = new Vec3d(0, 0, 0);
-			float pitch = this.pitch;
+			float pitch = this.getPitch();
 			if (Math.abs(pitch) < 30) {
 				pitch = 0;
 			}
-			float yaw = this.yaw;
+			float yaw = this.getYaw();
 			Vec3d fwd = getRotationVector(pitch, yaw);
 			Vec3d up = getRotationVector(pitch-90, yaw);
 			Vec3d left = up.crossProduct(fwd);

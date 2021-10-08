@@ -31,7 +31,7 @@ public class MixinEntity {
 	public void onStartedTrackingBy(ServerPlayerEntity tracker, CallbackInfo ci) {
 		Entity self = (Entity)(Object)this;
 		if (self instanceof PlayerEntity) {
-			new MessageOtherNoclipping(self.getEntityId(), AbilityCheck.enabled((PlayerEntity)self, Ability.NOCLIP)).sendTo(tracker);
+			new MessageOtherNoclipping(self.getId(), AbilityCheck.enabled((PlayerEntity)self, Ability.NOCLIP)).sendTo(tracker);
 		}
 	}
 	

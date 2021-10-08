@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.lwjgl.opengl.GL11;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.unascribed.notenoughcreativity.Ability;
 import com.unascribed.notenoughcreativity.AbilityCheck;
 import com.unascribed.notenoughcreativity.CPSAccess;
@@ -25,8 +25,10 @@ import com.google.common.collect.Lists;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.client.gui.widget.AbstractButtonWidget;
-import net.minecraft.client.options.KeyBinding;
+import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.DiffuseLighting;
+import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.math.MatrixStack;
@@ -65,7 +67,7 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 	private Ability hoveredAbility;
 	
 	public CreativePlusScreen(CreativePlusScreenHandler handler) {
-		super(handler, MinecraftClient.getInstance().player.inventory, new TranslatableText("notenoughcreativity.title"));
+		super(handler, MinecraftClient.getInstance().player.getInventory(), new TranslatableText("notenoughcreativity.title"));
 		MinecraftClient.getInstance().player.currentScreenHandler = handler;
 		this.container = handler;
 		backgroundWidthAddn = 52;
@@ -88,7 +90,7 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 			cons.setAccessible(true);
 			// HandledScreen<?> parentGui, int xIn, int yIn, int widthIn, int heightIn,
 			//  int textureOffsetX, int textureOffsetY, int yDiffText, Identifier identifier
-			addButton((AbstractButtonWidget)cons.newInstance(this, x+ofs.getLeft()-52, y+ofs.getRight()+93, 14, 14, 50, 0, 14, new Identifier("curios", "textures/gui/inventory.png")));
+			addDrawable((ClickableWidget)cons.newInstance(this, x+ofs.getLeft()-52, y+ofs.getRight()+93, 14, 14, 50, 0, 14, new Identifier("curios", "textures/gui/inventory.png")));
 		} catch (ClassNotFoundException ignore) {
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -144,45 +146,45 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 			
 			int x = this.x+backgroundWidth-18;
 			int y = this.y+4;
-			client.getTextureManager().bindTexture(BG);
-			GlStateManager.disableLighting();
+			RenderSystem.setShaderTexture(0, BG);
+			DiffuseLighting.disableGuiDepthLighting();
+			RenderSystem.setShader(GameRenderer::getPositionColorTexShader);
 			for (Ability a : Ability.VALUES_SORTED) {
+				RenderSystem.setShaderColor(0, 0, 0, 1);
 				fill(matrices, x, y, x+11, y+11, 0xFF000000);
 				if (AbilityCheck.enabled(client.player, a)) {
-					GlStateManager.color4f(1, 1, 0, 1);
+					RenderSystem.setShaderColor(1, 1, 0, 1);
 				} else {
-					GlStateManager.color4f(0.5f, 0.5f, 0.5f, 1);
+					RenderSystem.setShaderColor(0.5f, 0.5f, 0.5f, 1);
 				}
 				drawTexture(matrices, x+1, y+1, 251+(a.ordinal()*9), 0, 9, 9, 384, 384);
 				if (AbilityCheck.enabled(client.player, a)) {
-					GlStateManager.color4f(1, 1, 1, 0.2f);
+					RenderSystem.setShaderColor(1, 1, 1, 0.2f);
 					ThreadLocalRandom r = ThreadLocalRandom.current();
-					GlStateManager.enableBlend();
-					GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-					GlStateManager.disableAlphaTest();
+					
+					RenderSystem.enableBlend();
+					RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 					for (int i = 0; i < 6; i++) {
-						GlStateManager.pushMatrix();
-						GlStateManager.translatef(r.nextFloat()-r.nextFloat(), r.nextFloat()-r.nextFloat(), 0);
+						matrices.push();
+						matrices.translate(r.nextFloat()-r.nextFloat(), r.nextFloat()-r.nextFloat(), 0);
 						drawTexture(matrices, x+1, y+1, 251+(a.ordinal()*9), 0, 9, 9, 384, 384);
-						GlStateManager.popMatrix();
+						matrices.pop();
 					}
-					GlStateManager.enableAlphaTest();
 				}
 				if (mouseX >= x && mouseX < x+11 && mouseY >= y && mouseY < y+11) {
 					hoveredAbility = a;
 				}
 				x -= 12;
 			}
+			RenderSystem.setShaderColor(1, 1, 1, 1);
 			
-			GlStateManager.disableTexture();
-			GlStateManager.enableBlend();
-			GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-			GlStateManager.disableAlphaTest();
+			RenderSystem.setShader(GameRenderer::getPositionColorShader);
+			RenderSystem.enableBlend();
+			RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 			for (GuiParticle gp : particles) {
-				gp.render(partialTicks);
+				gp.render(matrices, partialTicks);
 			}
-			GlStateManager.enableTexture();
-			GlStateManager.enableAlphaTest();
+			RenderSystem.enableTexture();
 			Slot foc = ((AccessorFocusedSlot)this).nec$getFocusedSlot();
 			if (foc == container.deleteSlot) {
 				renderTooltip(matrices, new TranslatableText("inventory.binSlot"), mouseX, mouseY);
@@ -208,8 +210,8 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 	}
 	
 	@Override
-	public void tick() {
-		super.tick();
+	protected void handledScreenTick() {
+		super.handledScreenTick();
 		Iterator<GuiParticle> iter = particles.iterator();
 		while (iter.hasNext()) {
 			GuiParticle gp = iter.next();
@@ -238,22 +240,22 @@ public class CreativePlusScreen extends HandledScreen<CreativePlusScreenHandler>
 	
 	@Override
 	protected void drawBackground(MatrixStack matrices, float partialTicks, int mouseX, int mouseY) {
-		client.getTextureManager().bindTexture(BG);
+		RenderSystem.setShaderTexture(0, BG);
 		int x = ((width-backgroundWidth)/2)-backgroundWidthAddn;
 		int y = (height-backgroundHeight)/2;
 		if (AbilityCheck.enabled(client.player, Ability.DARKMODE)) {
-			GlStateManager.color4f(0.2f, 0.2f, 0.3f, 1);
+			RenderSystem.setShaderColor(0.2f, 0.2f, 0.3f, 1);
 		} else {
-			GlStateManager.color4f(1, 1, 1, 1);
+			RenderSystem.setShaderColor(1, 1, 1, 1);
 		}
 		drawTexture(matrices, x, y, 0, 0, backgroundWidth+backgroundWidthAddn, backgroundHeight, 384, 384);
 		if (AbilityCheck.enabled(client.player, Ability.DARKMODE)) {
-			GlStateManager.color4f(1, 1, 0, 1);
+			RenderSystem.setShaderColor(1, 1, 0, 1);
 			drawTexture(matrices, x+61, y+166, 61, 166, 16, 16, 384, 384);
-			GlStateManager.color4f(1, 0.4f, 0.2f, 1);
+			RenderSystem.setShaderColor(1, 0.4f, 0.2f, 1);
 			drawTexture(matrices, x+61, y+188, 61, 188, 16, 16, 384, 384);
 		}
-		GlStateManager.color4f(1, 1, 1, 1);
+		RenderSystem.setShaderColor(1, 1, 1, 1);
 		InventoryScreen.drawEntity(x+51, y+82, 30, x+51-mouseX, y+30-mouseY, client.player);
 	}
 	

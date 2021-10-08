@@ -38,7 +38,7 @@ public class MessageRecallPosition extends Message {
 				Identifier dim = ((NECPlayer)player).nec$getSavedDimension();
 				ServerWorld target;
 				if (!player.world.getRegistryKey().getValue().equals(dim)) {
-					ServerWorld world = player.world.getServer().getWorld(RegistryKey.of(Registry.DIMENSION, dim));
+					ServerWorld world = player.world.getServer().getWorld(RegistryKey.of(Registry.WORLD_KEY, dim));
 					if (world == null) {
 						player.sendMessage(new TranslatableText("msg.notenoughcreativity.position_recall.fail.no_dim"), true);
 						return;

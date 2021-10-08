@@ -45,11 +45,11 @@ public class MessageEnabled extends Message {
 				NotEnoughCreativity.updateInventory(mc.player);
 				if (enabled) {
 					if (mc.currentScreen instanceof CreativeInventoryScreen) {
-						mc.openScreen(new CreativePlusScreen(new CreativePlusScreenHandler(mc.player)));
+						mc.setScreen(new CreativePlusScreen(new CreativePlusScreenHandler(mc.player)));
 					}
 				} else {
 					if (mc.currentScreen instanceof CreativePlusScreen) {
-						mc.openScreen(new CreativeInventoryScreen(mc.player));
+						mc.setScreen(new CreativeInventoryScreen(mc.player));
 					}
 				}
 			}

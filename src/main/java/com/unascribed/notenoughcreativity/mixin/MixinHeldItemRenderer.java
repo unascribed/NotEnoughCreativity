@@ -7,8 +7,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.unascribed.notenoughcreativity.Ability;
 import com.unascribed.notenoughcreativity.AbilityCheck;
-import com.unascribed.notenoughcreativity.client.Stipple;
-
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.VertexConsumerProvider.Immediate;
 import net.minecraft.client.render.item.HeldItemRenderer;
@@ -20,14 +18,14 @@ public class MixinHeldItemRenderer {
 	@Inject(at=@At("HEAD"), method="renderItem(FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lnet/minecraft/client/network/ClientPlayerEntity;I)V")
 	public void renderHandPre(float tickDelta, MatrixStack matrices, Immediate vertexConsumers, ClientPlayerEntity player, int light, CallbackInfo ci) {
 		if (AbilityCheck.enabled(player, Ability.NOCLIP)) {
-			Stipple.grey30();
-			Stipple.enable();
+//			Stipple.grey30();
+//			Stipple.enable();
 		}
 	}
 	
 	@Inject(at=@At("TAIL"), method="renderItem(FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lnet/minecraft/client/network/ClientPlayerEntity;I)V")
 	public void renderHandPost(float tickDelta, MatrixStack matrices, Immediate vertexConsumers, ClientPlayerEntity player, int light, CallbackInfo ci) {
-		Stipple.disable();
+//		Stipple.disable();
 	}
 	
 }

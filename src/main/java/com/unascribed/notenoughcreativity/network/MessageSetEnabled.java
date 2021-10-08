@@ -27,7 +27,7 @@ public class MessageSetEnabled extends Message {
 	protected void handle(PlayerEntity player) {
 		if (!(player instanceof NECPlayer)) return;
 		NECPlayer nec = (NECPlayer)player;
-		if (player.abilities.creativeMode) {
+		if (player.getAbilities().creativeMode) {
 			nec.nec$setCreativePlusEnabled(enabled);
 			NotEnoughCreativity.updateInventory(player);
 		}

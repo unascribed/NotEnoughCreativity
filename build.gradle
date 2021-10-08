@@ -1,54 +1,54 @@
 plugins {
-	id 'fabric-loom' version '0.5-SNAPSHOT'
+	id 'fabric-loom' version '0.8-SNAPSHOT'
 	id 'maven-publish'
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = 16
+targetCompatibility = 16
 
 archivesBaseName = project.archives_base_name
 version = project.version
 group = project.maven_group
 
 repositories {
-	jcenter()
-    maven {
-        url "https://maven.jamieswhiteshirt.com/libs-release"
-        content {
-            includeGroup "com.jamieswhiteshirt"
-        }
-    }
+	maven {
+		url "https://maven.shedaniel.me/"
+		content {
+			includeGroup "me.shedaniel"
+			includeGroup "me.shedaniel.cloth"
+			includeGroup "dev.architectury"
+		}
+	}
+	maven {
+		url "https://maven.jamieswhiteshirt.com/libs-release"
+		content {
+			includeGroup "com.jamieswhiteshirt"
+		}
+	}
 }
 
 dependencies {
-	//to change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	
-	modApi "me.shedaniel:RoughlyEnoughItems:5.8.10"
-	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api:5.8.10"
-	modRuntime "me.shedaniel:RoughlyEnoughItems-api:5.8.10"
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:6.0.279-alpha"
+	modRuntime "me.shedaniel:RoughlyEnoughItems-fabric:6.0.279-alpha"
 	
-	modImplementation "com.jamieswhiteshirt:reach-entity-attributes:1.1.1"
+	modImplementation "com.jamieswhiteshirt:reach-entity-attributes:2.1.1"
 }
 
-minecraft {
-	accessWidener "src/main/resources/notenoughcreativity.accesswidener"
+loom {
+	accessWidener = file("src/main/resources/notenoughcreativity.accesswidener")
 }
 
 processResources {
 	inputs.property "version", project.version
 
-	from(sourceSets.main.resources.srcDirs) {
-		include "fabric.mod.json"
+	filesMatching("fabric.mod.json") {
 		expand "version": project.version
-	}
-
-	from(sourceSets.main.resources.srcDirs) {
-		exclude "fabric.mod.json"
 	}
 }
 

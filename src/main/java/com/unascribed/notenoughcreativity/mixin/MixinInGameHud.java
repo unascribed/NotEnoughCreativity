@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.unascribed.notenoughcreativity.Ability;
 import com.unascribed.notenoughcreativity.AbilityCheck;
 import com.unascribed.notenoughcreativity.LoaderHandler;
@@ -27,9 +26,9 @@ public class MixinInGameHud {
 	
 	@Inject(at=@At("HEAD"), method="renderStatusBars(Lnet/minecraft/client/util/math/MatrixStack;)V")
 	public void renderStatusBarsPre(MatrixStack matrices, CallbackInfo ci) {
-		GlStateManager.pushMatrix();
+		matrices.push();
 		if (LoaderHandler.isNotForge() && AbilityCheck.enabled(MinecraftClient.getInstance().player, Ability.HEALTH)) {
-			GlStateManager.translatef(0, 6, 0);
+			matrices.translate(0, 6, 0);
 			if (MinecraftClient.getInstance().player.getHealth() < 0.2) {
 				nec$needRestoreHealth = true;
 				nec$oldHealth = MinecraftClient.getInstance().player.getHealth();
@@ -44,7 +43,7 @@ public class MixinInGameHud {
 			nec$needRestoreHealth = false;
 			MinecraftClient.getInstance().player.setHealth(nec$oldHealth);
 		}
-		GlStateManager.popMatrix();
+		matrices.pop();
 	}
 	
 	@Inject(at=@At("HEAD"), method="getHeartCount(Lnet/minecraft/entity/LivingEntity;)I", cancellable=true)

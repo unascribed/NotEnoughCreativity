@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.unascribed.notenoughcreativity.network.MessageSetEnabled;
 
 import net.minecraft.client.gui.DrawableHelper;
@@ -53,18 +53,16 @@ public abstract class MixinCreativeInventoryScreen extends AbstractInventoryScre
 	public void drawBackground(MatrixStack matrices, float partialTicks, int mX, int mY, CallbackInfo ci) {
 		CreativeInventoryScreen self = (CreativeInventoryScreen)(Object)this;
 		if (self.getSelectedTab() == ItemGroup.INVENTORY.getIndex()) {
-			GlStateManager.pushMatrix();
-			GlStateManager.enableDepthTest();
-			GlStateManager.depthFunc(GL11.GL_LEQUAL);
-			GlStateManager.disableLighting();
-			GlStateManager.color4f(1, 1, 1, 1);
-			GlStateManager.translatef(0, 0, 0);
-			client.getTextureManager().bindTexture(NEC$SWAP);
+			matrices.push();
+			RenderSystem.enableDepthTest();
+			RenderSystem.depthFunc(GL11.GL_LEQUAL);
+			RenderSystem.setShaderColor(1, 1, 1, 1);
+			RenderSystem.setShaderTexture(0, NEC$SWAP);
 			int x = this.x+172;
 			int y = this.y+89;
 			DrawableHelper.drawTexture(matrices, x, y, 0, 0, 18, 18, 18, 18);
-			GlStateManager.disableDepthTest();
-			GlStateManager.popMatrix();
+			RenderSystem.disableDepthTest();
+			matrices.pop();
 		}
 	}
 	

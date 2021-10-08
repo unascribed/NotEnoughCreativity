@@ -35,7 +35,7 @@ public class ReachHandler {
 		@Override
 		public void tick(PlayerEntity player) {
 			EntityAttributeInstance reach = player.getAttributes().getCustomInstance(ReachEntityAttributes.REACH);
-			if (!player.abilities.creativeMode) {
+			if (!player.getAbilities().creativeMode) {
 				if (reach.hasModifier(REACH_MODIFIER)) {
 					reach.removeModifier(REACH_MODIFIER);
 				}

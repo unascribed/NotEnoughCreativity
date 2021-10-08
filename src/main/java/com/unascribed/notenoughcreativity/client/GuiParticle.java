@@ -62,11 +62,11 @@ public class GuiParticle {
 		posY += motionY;
 	}
 
-	public void render(float partialTicks) {
+	public void render(MatrixStack matrices, float partialTicks) {
 		double interpPosX = prevPosX + (posX - prevPosX) * partialTicks;
 		double interpPosY = prevPosY + (posY - prevPosY) * partialTicks;
 
-		DrawableHelper.fill(new MatrixStack(), (int) interpPosX, (int) interpPosY, (int) interpPosX + 1, (int) interpPosY + 1, color);
+		DrawableHelper.fill(matrices, (int) interpPosX, (int) interpPosY, (int) interpPosX + 1, (int) interpPosY + 1, color);
 	}
 
 }
