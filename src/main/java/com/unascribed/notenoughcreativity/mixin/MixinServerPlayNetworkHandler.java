@@ -15,7 +15,8 @@ import net.minecraft.network.packet.c2s.play.CustomPayloadC2SPacket;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-@Mixin(ServerPlayNetworkHandler.class)
+// lower priority to allow Reach Entity Attributes to go first
+@Mixin(value=ServerPlayNetworkHandler.class, priority=800)
 public class MixinServerPlayNetworkHandler {
 	
 	@Shadow
@@ -31,7 +32,7 @@ public class MixinServerPlayNetworkHandler {
 		}
 	}
 	
-	// no require as Forge also patches these, so they may be missing
+	// no require as Forge and Reach Entity Attributes also patch these, so they may be missing
 	
 	@ModifyConstant(method="onPlayerInteractBlock(Lnet/minecraft/network/packet/c2s/play/PlayerInteractBlockC2SPacket;)V",
 			constant=@Constant(doubleValue=64), require=0)
