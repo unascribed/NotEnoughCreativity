@@ -10,7 +10,8 @@ import com.unascribed.notenoughcreativity.NECPlayer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 
-@Mixin(ServerPlayerInteractionManager.class)
+// lower priority to allow Reach Entity Attributes to go first
+@Mixin(value=ServerPlayerInteractionManager.class, priority=800)
 public class MixinServerPlayerInteractionManager {
 
 	@Shadow
