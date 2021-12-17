@@ -1,0 +1,58 @@
+{
+    "notenoughcreativity.title": "Творческий инвентарь+",
+
+    "notenoughcreativity.swap": "Переключить в Творческий+",
+    "notenoughcreativity.exit": "Переключить в Творческий",
+    
+    "key.notenoughcreativity.toggle_ability.nopickup": "Переключить на «Не подбирать предмет»‎",
+    "key.notenoughcreativity.toggle_ability.attack": "Переключить на «Мгновенное убийство»",
+    "key.notenoughcreativity.toggle_ability.health": "Переключить на «Предоставить урон»",
+    "key.notenoughcreativity.toggle_ability.instabreak": "Переключить на «Без замедления в ломании»",
+    "key.notenoughcreativity.toggle_ability.pickswap": "Переключить на «Замена-сбор»",
+    "key.notenoughcreativity.toggle_ability.nightvision": "Переключить на «Ночное зрение»",
+    "key.notenoughcreativity.toggle_ability.noclip": "Переключить на «Без быстроты»",
+    "key.notenoughcreativity.toggle_ability.darkmode": "Переключить на «Тёмный режим»",
+    "key.notenoughcreativity.toggle_ability.longreach": "Переключить на «Большая досягаемость»",
+    "key.notenoughcreativity.toggle_ability.free_flight": "Переключить на «Свободный полёт»",
+    "key.notenoughcreativity.toggle_ability.super_speed": "Переключить на «Сверхскорость»",
+    
+    "key.notenoughcreativity.hold.noclip": "Без быстроты",
+    "key.notenoughcreativity.hold.super_speed": "Сверхскорость",
+    
+    "key.notenoughcreativity.save_position": "Сохранить местоположение",
+    "key.notenoughcreativity.recall_position": "Загрузить местоположение",
+    "key.notenoughcreativity.warp": "Переместиться",
+    
+    "key.notenoughcreativity.down": "Спуститься",
+    "key.notenoughcreativity.up": "Подняться",
+    
+    "msg.notenoughcreativity.ability_toggle.true": "%s теперь §aВКЛ",
+    "msg.notenoughcreativity.ability_toggle.false": "%s теперь §cВЫКЛ",
+    "msg.notenoughcreativity.saved_position": "Положение сохранено",
+    "msg.notenoughcreativity.position_recall.success": "Положение загружено",
+    "msg.notenoughcreativity.position_recall.fail.no_pos": "Нет местоположения для возвращения.",
+    "msg.notenoughcreativity.position_recall.fail.no_dim": "Целевое измерение отсутствует.",
+
+    "notenoughcreativity.ability.nopickup.name": "Не подбирать предмет",
+    "notenoughcreativity.ability.nopickup.desc": "Полностью предотвращает сбор предмета, чтобы избежать беспорядок инвентаря.",
+    "notenoughcreativity.ability.attack.name": "Мгновенное убийство",
+    "notenoughcreativity.ability.attack.desc": "Значительно увеличивает кулачный урон, чтобы избавиться от надоедливых мобов без ношения меча. Также сдерживает выпадения предметов из убитых мобов.",
+    "notenoughcreativity.ability.health.name": "Предоставить урон",
+    "notenoughcreativity.ability.health.desc": "Предоставляет тебе урон и показывает полоску здоровья. Ты по-прежнему не можешь умереть, за исключением обычных вещей, которые могут убить игроков в творческом режиме.",
+    "notenoughcreativity.ability.instabreak.name": "Без замедления в ломании",
+    "notenoughcreativity.ability.instabreak.desc": "Отключает творческое замедление в ломании, позволяя ломать блоки, как золотая кирка сквозь незерак.",
+    "notenoughcreativity.ability.pickswap.name": "Замена-сбор",
+    "notenoughcreativity.ability.pickswap.desc": "Перемещает уникальные предметы в верхний инвентарь, вместо их удаления, при блокировки сбора с удерживающим предметом. Также удаляет первый совпадающий предмет из верхнего инвентаря при блокировки сбора.",
+    "notenoughcreativity.ability.nightvision.name": "Ночное зрение",
+    "notenoughcreativity.ability.nightvision.desc": "Делает все блоки полнояркими. Не срабатывает при эффекте Ночное зрение.",
+    "notenoughcreativity.ability.noclip.name": "Без быстроты",
+    "notenoughcreativity.ability.noclip.desc": "Отключает столкновения, как Наблюдатель.",
+    "notenoughcreativity.ability.darkmode.name": "Тёмный режим",
+    "notenoughcreativity.ability.darkmode.desc": "Темнит интерфейс.",
+    "notenoughcreativity.ability.longreach.name": "Большая досягаемость",
+    "notenoughcreativity.ability.longreach.desc": "Увеличивает досягаемость с 4 до 12 блоков.",
+    "notenoughcreativity.ability.free_flight.name": "Свободный полёт",
+    "notenoughcreativity.ability.free_flight.desc": "Разблокирует полный 3D полёт без ограничения скорости и парения. Похожа на MCEdit и бывший модированный полёт из клиента Classic WoM и командами одиночной игры.",
+    "notenoughcreativity.ability.super_speed.name": "Сверхскорость",
+    "notenoughcreativity.ability.super_speed.desc": "Учетверяет воздушную скорость."
+}
