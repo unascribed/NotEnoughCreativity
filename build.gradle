@@ -1,10 +1,10 @@
 plugins {
-	id 'fabric-loom' version '0.8-SNAPSHOT'
+	id 'fabric-loom' version '0.11-SNAPSHOT'
 	id 'maven-publish'
 }
 
-sourceCompatibility = 16
-targetCompatibility = 16
+sourceCompatibility = 17
+targetCompatibility = 17
 
 archivesBaseName = project.archives_base_name
 version = project.version
@@ -34,14 +34,14 @@ dependencies {
 	
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	
-	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:6.0.279-alpha"
-	modRuntime "me.shedaniel:RoughlyEnoughItems-fabric:6.0.279-alpha"
+//	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:6.0.279-alpha"
+//	modRuntime "me.shedaniel:RoughlyEnoughItems-fabric:6.0.279-alpha"
 	
 	modImplementation "com.jamieswhiteshirt:reach-entity-attributes:2.1.1"
 }
 
 loom {
-	accessWidener = file("src/main/resources/notenoughcreativity.accesswidener")
+	accessWidenerPath = file("src/main/resources/notenoughcreativity.accesswidener")
 }
 
 processResources {

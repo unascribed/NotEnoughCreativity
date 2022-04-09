@@ -35,7 +35,7 @@ public class MixinLivingEntity {
 		Object self = this;
 		if (self instanceof PlayerEntity && AbilityCheck.enabled((PlayerEntity)self, Ability.SUPER_SPEED)) {
 			PlayerEntity pe = (PlayerEntity)self;
-			pe.flyingSpeed *= 4;
+			pe.airStrafingSpeed *= 4;
 		}
 	}
 	

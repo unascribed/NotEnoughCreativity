@@ -18,8 +18,7 @@
 
   "environment": "*",
   "entrypoints": {
-    "main": ["com.unascribed.notenoughcreativity.NotEnoughCreativity"],
-    "rei_plugins": ["com.unascribed.notenoughcreativity.REIPlugin"]
+    "main": ["com.unascribed.notenoughcreativity.NotEnoughCreativity"]
   },
   "mixins": ["notenoughcreativity.mixins.json"],
   "accessWidener" : "notenoughcreativity.accesswidener",

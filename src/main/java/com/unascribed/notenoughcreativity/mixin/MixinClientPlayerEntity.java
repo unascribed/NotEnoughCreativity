@@ -47,8 +47,8 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
 			vec = vec.add(fwd.multiply(input.movementForward));
 			vec = vec.add(left.multiply(input.movementSideways));
 			float movementCamspaceUp = 0;
-			boolean sneakIsDown = mc.options.keySneak.equals(NEClient.INSTANCE.keyDown);
-			boolean jumpIsUp = mc.options.keyJump.equals(NEClient.INSTANCE.keyUp);
+			boolean sneakIsDown = mc.options.sneakKey.equals(NEClient.INSTANCE.keyDown);
+			boolean jumpIsUp = mc.options.jumpKey.equals(NEClient.INSTANCE.keyUp);
 			if (!sneakIsDown && input.sneaking) movementCamspaceUp--;
 			if (!jumpIsUp && input.jumping) movementCamspaceUp++;
 			vec = vec.add(up.multiply(movementCamspaceUp));
@@ -57,7 +57,7 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
 			if (NEClient.INSTANCE.keyUp.isPressed() || (jumpIsUp && input.jumping)) movementWorldspaceUp++;
 			vec = vec.add(new Vec3d(0, 1, 0).multiply(movementWorldspaceUp));
 			double speed = 0.5;
-			if (mc.options.keySprint.isPressed()) {
+			if (mc.options.sneakKey.isPressed()) {
 				speed *= 3;
 			}
 			if (AbilityCheck.enabled(this, Ability.SUPER_SPEED)) {
